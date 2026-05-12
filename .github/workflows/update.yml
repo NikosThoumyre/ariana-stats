@@ -3,7 +3,7 @@ name: Actualisation Kworb Ariana Grande
 on:
   schedule:
     # S'exécute toutes les heures à la minute 0 (ex: 18h00, 19h00, 20h00...)
-    - cron: '0 * * * *'
+    - cron: '*/10 * * * *'
   workflow_dispatch: # Permet d'avoir un bouton pour le lancer manuellement !
 
 permissions:
