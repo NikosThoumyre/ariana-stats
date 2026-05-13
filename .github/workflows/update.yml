@@ -3,7 +3,7 @@ name: Actualisation Kworb Ariana Grande
 on:
   schedule:
     # S'exécute toutes les heures à la minute 0 (ex: 18h00, 19h00, 20h00...)
-    - cron: '*/10 * * * *'
+    - cron: '*/15 * * * *'
   workflow_dispatch: # Permet d'avoir un bouton pour le lancer manuellement !
 
 permissions:
@@ -36,6 +36,6 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action Bot"
-          git add *.csv dashboard.html
+          git add -A
           git commit -m "Mise à jour auto des données Kworb" || echo "Aucune nouvelle donnée à sauvegarder"
           git push
