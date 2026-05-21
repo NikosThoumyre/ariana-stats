@@ -42,6 +42,107 @@ def clean_compare(val1, val2):
     except:
         return str(val1).strip() == str(val2).strip()
 
+def resolve_track_id(t):
+    # Si on a déjà forcé un Occurrence (ex: Intro___1), on le garde, sinon on met ___0 par défaut
+    return t if "___" in t else f"{t}___0"
+
+# ==========================================
+# 0. LE DICTIONNAIRE DES ALBUMS (Masterlist)
+# ==========================================
+ALBUM_TRACKS = {
+    "Yours Truly": [
+        "Honeymoon Avenue", "Baby I___0", "Right There", "Tattooed Heart", "Lovin' It", "Piano",
+        "Daydreamin'", "The Way", "You'll Never Know", "Almost Is Never Enough", "* Popular Song", "Better Left Unsaid"
+    ],
+    "Yours Truly (Tenth Anniversary Edition)": [
+        "Honeymoon Avenue", "Baby I___0", "Right There", "Tattooed Heart", "Lovin' It", "Piano",
+        "Daydreamin'", "The Way", "You'll Never Know", "Almost Is Never Enough", "* Popular Song", "Better Left Unsaid",
+        "Honeymoon Avenue - Live from London", "Daydreamin' - Live from London", "Baby I - Live from London",
+        "Tattooed Heart - Live from London", "Right There - Live from London (feat. Big Sean)", "The Way - Live from London (feat. Mac Miller)"
+    ],
+    "Christmas Kisses": [
+        "Last Christmas", "Love Is Everything", "Snow In California", "Santa Baby", "Santa Tell Me"
+    ],
+    "My Everything": [
+        "Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby",
+        "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything"
+    ],
+    "My Everything (Deluxe)": [
+        "Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby",
+        "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything",
+        "* Bang Bang", "Only 1", "You Don't Know Me"
+    ],
+    "My Everything (Tenth Anniversary Edition)": [
+        "Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby",
+        "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything",
+        "* Bang Bang", "Only 1", "You Don't Know Me", "Cadillac Song", "Too Close"
+    ],
+    "Christmas & Chill": [
+        "Intro___1", "Wit It This Christmas", "December", "Not Just On Christmas", "True Love", "Winter Things"
+    ],
+    "Dangerous Woman": [
+        "Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy",
+        "Leave Me Lonely", "Everyday", "Bad Decisions", "Thinking Bout You" 
+    ],
+    "Dangerous Woman (Deluxe)": [
+        "Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy",
+        "Leave Me Lonely", "Everyday", "Sometimes", "I Don't Care", "Bad Decisions", "Touch It",
+        "Knew Better / Forever Boy", "Thinking Bout You", "Step On Up", "Jason's Song (Gave It Away)", "Focus"
+    ],
+    "Dangerous Woman (Tenth Anniversary Edition)": [
+        "Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy",
+        "Leave Me Lonely", "Everyday", "Sometimes", "I Don't Care", "Bad Decisions", "Touch It",
+        "Knew Better / Forever Boy", "Thinking Bout You", "Step On Up", "Jason's Song (Gave It Away)", "Focus",
+        "Knew Better Part Two"
+    ],
+    "Sweetener": [
+        "raindrops (an angel cried)", "blazed (feat. Pharrell Williams)", "the light is coming (feat. Nicki Minaj)",
+        "R.E.M", "God is a woman", "sweetener", "successful", "everytime", "breathin", "no tears left to cry",
+        "borderline (feat. Missy Elliott)", "better off", "goodnight n go", "pete davidson", "get well soon"
+    ],
+    "thank u, next": [
+        "imagine", "needy", "NASA", "bloodline", "fake smile", "bad idea", "make up", "ghostin", "in my head",
+        "7 rings", "thank u, next", "break up with your girlfriend, i'm bored"
+    ],
+    "k bye for now (swt live)": [
+        "raindrops (an angel cried) - live", "god is a woman - live", "bad idea - live",
+        "break up with your girlfriend, i'm bored - live", "r.e.m - live", "be alright - live", "sweetener - live",
+        "successful - live", "side to side - live", "7 rings - live", "love me harder - live", "breathin - live",
+        "needy - live", "fake smile - live", "make up - live", "right there - live", "you'll never know - live",
+        "break your heart right back - live", "nasa - live", "tattooed heart - live", "only 1 - live",
+        "goodnight n go - live", "get well soon - live", "in my head interlude - live", "everyday - live",
+        "the light is coming - live", "into you - live", "my heart belongs to daddy - live", "dangerous woman - live",
+        "break free - live", "no tears left to cry - live", "thank u, next - live"
+    ],
+    "Positions": [
+        "shut up", "34+35", "motive (with Doja Cat)", "just like magic", "off the table (with The Weeknd)",
+        "six thirty", "safety net (feat. Ty Dolla $ign)", "my hair", "nasty", "west side", "love language",
+        "positions", "obvious", "pov"
+    ],
+    "Positions (Deluxe)": [
+        "shut up", "34+35", "motive (with Doja Cat)", "just like magic", "off the table (with The Weeknd)",
+        "six thirty", "safety net (feat. Ty Dolla $ign)", "my hair", "nasty", "west side", "love language",
+        "positions", "obvious", "pov", "someone like u - interlude", "test drive",
+        "34+35 Remix (feat. Doja Cat, Megan Thee Stallion) - Remix", "worst behavior", "main thing"
+    ],
+    "eternal sunshine": [
+        "intro (end of the world)", "bye", "don't wanna break up again", "Saturn Returns Interlude",
+        "eternal sunshine", "supernatural", "true story", "the boy is mine", "yes, and?",
+        "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)"
+    ],
+    "eternal sunshine (deluxe: brighter days ahead)": [
+        "intro (end of the world)", "bye", "don't wanna break up again", "Saturn Returns Interlude",
+        "eternal sunshine", "supernatural", "true story", "the boy is mine", "yes, and?",
+        "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)",
+        "intro (end of the world) - extended", "yes, and? (with Mariah Carey) - Remix", "supernatural (with Troye Sivan) - remix",
+        "the boy is mine (with Brandy, Monica) - Remix", "twilight zone", "warm", "dandelion", "past life", "hampstead"
+    ],
+    "Petal": [
+        "Hate That I Made You Love Me"
+    ]
+}
+
+
 # ==========================================
 # 1. DONNÉES CHANSONS & CALCULS
 # ==========================================
@@ -55,6 +156,15 @@ dates = sorted(df['Date'].unique(), reverse=True)
 date_jour = dates[0]
 df_jour = df[df['Date'] == date_jour].copy()
 
+# Base pour les évolutions (Hier vs Aujourd'hui)
+if len(dates) >= 2:
+    df_evolution = pd.merge(df_jour, df[df['Date'] == dates[1]], on=['Song Title', 'Occurence'], suffixes=('_Aujourdhui', '_Hier'))
+    df_evolution['Différence'] = df_evolution['Daily_num_Aujourdhui'] - df_evolution['Daily_num_Hier']
+    df_affichage_evo = df_evolution[['Song Title', 'Daily_num_Aujourdhui', 'Daily_num_Hier', 'Différence', 'Unique_ID_Aujourdhui']].copy()
+    df_affichage_evo = df_affichage_evo.rename(columns={'Unique_ID_Aujourdhui': 'Unique_ID'})
+else:
+    df_affichage_evo = pd.DataFrame(columns=['Song Title', 'Daily_num_Aujourdhui', 'Daily_num_Hier', 'Différence', 'Unique_ID'])
+
 # --- Global ---
 df_global = df_jour.copy()
 df_global['Chanson'] = df_global.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
@@ -64,16 +174,13 @@ html_tableau_global = df_global[['Chanson', 'Streams ', 'Daily ']].fillna('-').t
 
 # --- Évolution ---
 if len(dates) >= 2:
-    df_evolution = pd.merge(df_jour, df[df['Date'] == dates[1]], on=['Song Title', 'Occurence'], suffixes=('_Aujourdhui', '_Hier'))
-    df_evolution['Différence'] = df_evolution['Daily_num_Aujourdhui'] - df_evolution['Daily_num_Hier']
-    df_affichage_evo = df_evolution[['Song Title', 'Daily_num_Aujourdhui', 'Daily_num_Hier', 'Différence', 'Unique_ID_Aujourdhui']].copy()
-    df_affichage_evo = df_affichage_evo.rename(columns={'Unique_ID_Aujourdhui': 'Unique_ID'})
-    df_affichage_evo['Chanson'] = df_affichage_evo.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
-    df_affichage_evo['Daily Actuel '] = df_affichage_evo['Daily_num_Aujourdhui'].apply(format_en)
-    df_affichage_evo['Daily Veille '] = df_affichage_evo['Daily_num_Hier'].apply(format_en)
-    df_affichage_evo['Évolution (Différence)'] = df_affichage_evo['Différence'].apply(format_evo)
-    df_affichage_evo = df_affichage_evo[['Chanson', 'Daily Actuel ', 'Daily Veille ', 'Évolution (Différence)']]
-    html_tableau_evo = df_affichage_evo.to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
+    df_evo_visuel = df_affichage_evo.copy()
+    df_evo_visuel['Chanson'] = df_evo_visuel.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
+    df_evo_visuel['Daily Actuel '] = df_evo_visuel['Daily_num_Aujourdhui'].apply(format_en)
+    df_evo_visuel['Daily Veille '] = df_evo_visuel['Daily_num_Hier'].apply(format_en)
+    df_evo_visuel['Évolution (Différence)'] = df_evo_visuel['Différence'].apply(format_evo)
+    df_evo_visuel = df_evo_visuel[['Chanson', 'Daily Actuel ', 'Daily Veille ', 'Évolution (Différence)']]
+    html_tableau_evo = df_evo_visuel.to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
 else:
     html_tableau_evo = "<p style='text-align:center;'><em>⏳ Reviens à la prochaine mise à jour pour voir les évolutions !</em></p>"
 
@@ -90,11 +197,9 @@ df_pred[f'Prédiction (au 31 Déc {date_obj.year})'] = df_pred['Prédiction'].ap
 df_pred_final = df_pred[['Chanson', 'Streams Actuels ', 'Daily Actuel ', f'Prédiction (au 31 Déc {date_obj.year})']]
 html_tableau_pred = df_pred_final.to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
 
-# --- Milestones ---
+# --- Milestones & Overtakes ---
 df_ms = df_jour[df_jour['Daily_num'] > 0].copy()
-def next_milestone(streams):
-    return math.ceil((streams + 1) / 100_000_000) * 100_000_000
-df_ms['Next Milestone'] = df_ms['Streams_num'].apply(next_milestone)
+df_ms['Next Milestone'] = df_ms['Streams_num'].apply(lambda s: math.ceil((s + 1) / 100_000_000) * 100_000_000)
 df_ms['Remaining'] = df_ms['Next Milestone'] - df_ms['Streams_num']
 df_ms['Days Away'] = (df_ms['Remaining'] / df_ms['Daily_num']).apply(math.ceil)
 df_ms = df_ms.sort_values('Days Away').head(20)
@@ -104,7 +209,6 @@ df_ms['Remaining Streams '] = df_ms['Remaining'].apply(format_en)
 df_ms['Estimated Days '] = df_ms['Days Away'].apply(format_en)
 html_tableau_ms = df_ms[['Chanson', 'Target ', 'Remaining Streams ', 'Estimated Days ']].to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
 
-# --- Overtakes ---
 overtakes =[]
 records_actifs = df_jour[df_jour['Daily_num'] > 0].sort_values('Streams_num', ascending=False).to_dict('records')
 for i in range(len(records_actifs)):
@@ -114,15 +218,10 @@ for i in range(len(records_actifs)):
         if chanson_poursuivant['Daily_num'] > chanson_cible['Daily_num']:
             vitesse_rattrapage = chanson_poursuivant['Daily_num'] - chanson_cible['Daily_num']
             ecart_streams = chanson_cible['Streams_num'] - chanson_poursuivant['Streams_num']
-            jours = math.ceil(ecart_streams / vitesse_rattrapage)
             overtakes.append({
-                'Overtaker_UID': chanson_poursuivant['Unique_ID'],
-                'Overtaker': chanson_poursuivant['Song Title'],
-                'Target_UID': chanson_cible['Unique_ID'],
-                'Target': chanson_cible['Song Title'],
-                'Diff': ecart_streams,
-                'Speed': vitesse_rattrapage,
-                'Days': jours
+                'Overtaker_UID': chanson_poursuivant['Unique_ID'], 'Overtaker': chanson_poursuivant['Song Title'],
+                'Target_UID': chanson_cible['Unique_ID'], 'Target': chanson_cible['Song Title'],
+                'Diff': ecart_streams, 'Speed': vitesse_rattrapage, 'Days': math.ceil(ecart_streams / vitesse_rattrapage)
             })
 
 df_over = pd.DataFrame(overtakes)
@@ -137,8 +236,79 @@ if not df_over.empty:
 else:
     html_tableau_overtake = "<p style='text-align:center; padding:20px;'>Aucun dépassement en cours détecté.</p>"
 
+
 # ==========================================
-# 2. GRAPHIQUES JSON & MARKET SHARE
+# 2. LOGIQUE DES ALBUMS (NOUVEAU)
+# ==========================================
+album_list_stats = []
+albums_js_data = {}
+html_album_tracklists = ""
+
+for i, (nom_album, tracklist_brute) in enumerate(ALBUM_TRACKS.items()):
+    # Convertit les noms du dico en Unique_ID (ex: ajoute ___0 si besoin)
+    uids_album = [resolve_track_id(t) for t in tracklist_brute]
+    
+    # 1. Stats pour la page "Liste des Albums"
+    alb_jour = df_jour[df_jour['Unique_ID'].isin(uids_album)]
+    tot_jour = alb_jour['Streams_num'].sum()
+    daily_jour = alb_jour['Daily_num'].sum()
+    
+    daily_veille = 0
+    if len(dates) >= 2:
+        alb_veille = df[df['Date'] == dates[1]]
+        alb_veille = alb_veille[alb_veille['Unique_ID'].isin(uids_album)]
+        daily_veille = alb_veille['Daily_num'].sum()
+        
+    lien_cliquable = f'<a href="javascript:void(0)" onclick="afficherDetailsAlbum({i})" class="song-link">💿 {html.escape(nom_album)}</a>'
+    album_list_stats.append({
+        'Album': lien_cliquable, 'Total_Num': tot_jour, 'Daily_Num': daily_jour, 'Diff': daily_jour - daily_veille
+    })
+
+    # 2. Données JSON pour les 2 graphiques de cet album
+    df_alb_hist = df[df['Unique_ID'].isin(uids_album)]
+    df_alb_agg = df_alb_hist.groupby('Date').agg({'Streams_num':'sum', 'Daily_num':'sum'}).reset_index().sort_values('Date')
+    albums_js_data[i] = {
+        'titre': nom_album,
+        'dates': df_alb_agg['Date'].tolist(),
+        'streams': df_alb_agg['Streams_num'].tolist(),
+        'daily': df_alb_agg['Daily_num'].tolist()
+    }
+
+    # 3. Création du code HTML de la Tracklist de l'album
+    if not df_affichage_evo.empty:
+        df_tracklist = df_affichage_evo[df_affichage_evo['Unique_ID'].isin(uids_album)].copy()
+        
+        # 💡 CORRECTION ICI : On vérifie si l'album a au moins 1 chanson classée !
+        if not df_tracklist.empty:
+            # On remet l'ordre exact du dictionnaire
+            order_dict = {uid: idx for idx, uid in enumerate(uids_album)}
+            df_tracklist['Ordre_Album'] = df_tracklist['Unique_ID'].map(order_dict)
+            df_tracklist = df_tracklist.sort_values('Ordre_Album')
+            
+            df_tracklist['Chanson'] = df_tracklist.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
+            df_tracklist['Daily Actuel '] = df_tracklist['Daily_num_Aujourdhui'].apply(format_en)
+            df_tracklist['Daily Veille '] = df_tracklist['Daily_num_Hier'].apply(format_en)
+            df_tracklist['Évolution'] = df_tracklist['Différence'].apply(format_evo)
+            df_tracklist = df_tracklist[['Chanson', 'Daily Actuel ', 'Daily Veille ', 'Évolution']]
+            tbl_html = df_tracklist.to_html(index=False, classes="table-chansons auto-index", escape=False)
+        else:
+            # S'il n'y a aucune chanson de l'album dans le Top Kworb aujourd'hui :
+            tbl_html = "<p style='text-align:center; padding: 20px; color: #666;'><em>Aucune chanson de cet album n'est classée dans le Top Kworb aujourd'hui.</em></p>"
+    else:
+        tbl_html = "<p style='text-align:center; padding: 20px;'><em>⏳ Attente de la prochaine mise à jour...</em></p>"
+    
+    html_album_tracklists += f'<div id="tracklist-album-{i}" class="album-tracklist-content" style="display:none;">{tbl_html}</div>\n'
+
+# Formatage de la table globale des Albums
+df_album_list = pd.DataFrame(album_list_stats).sort_values('Total_Num', ascending=False)
+df_album_list['Total Streams '] = df_album_list['Total_Num'].apply(format_en)
+df_album_list['Daily Streams '] = df_album_list['Daily_Num'].apply(format_en)
+df_album_list['Évolution'] = df_album_list['Diff'].apply(format_evo)
+html_tableau_albums_list = df_album_list[['Album', 'Total Streams ', 'Daily Streams ', 'Évolution']].to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
+
+
+# ==========================================
+# 3. GRAPHIQUES JSON (Chansons) & MARKET SHARE
 # ==========================================
 df_graph_global = df.groupby('Date').agg({'Streams_num': 'sum', 'Daily_num': 'sum'}).reset_index().sort_values('Date')
 dates_js = json.dumps(df_graph_global['Date'].tolist())
@@ -164,9 +334,10 @@ for uid in df['Unique_ID'].unique():
         'daily_7d': df_chanson['Daily_7d'].tolist()
     }
 historique_chansons_js = json.dumps(historique_chansons)
+albums_js_data_json = json.dumps(albums_js_data)
 
 # ==========================================
-# 3. DONNÉES ARTISTE & LISTENERS
+# 4. DONNÉES ARTISTE & LISTENERS
 # ==========================================
 df_resume = pd.read_csv("historique_resume.csv")
 df_resume_jour = df_resume[df_resume['Date'] == df_resume['Date'].max()].drop(columns=['Date'])
@@ -217,7 +388,7 @@ html_listeners_grid = f"""
 """
 
 # ==========================================
-# 4. CRÉATION DU FICHIER HTML
+# 5. CRÉATION DU FICHIER HTML
 # ==========================================
 html_content = f"""
 <!DOCTYPE html>
@@ -256,20 +427,11 @@ html_content = f"""
         .table-listeners th:nth-child(2), .table-listeners td:nth-child(2) {{ text-align: left; }}
         .table-chansons tr:hover {{ background-color: #f1f1f1; }}
         
-        /* 💡 NOUVEAU : CSS MAGIQUE POUR L'INDEXATION AUTOMATIQUE (1. 2. 3...) */
         .auto-index tbody {{ counter-reset: row-num; }}
         .auto-index tbody tr {{ counter-increment: row-num; }}
-        .auto-index tbody tr td:first-child::before {{
-            content: counter(row-num) ".";
-            color: #999;
-            font-weight: bold;
-            display: inline-block;
-            width: 25px;
-            margin-right: 8px;
-            text-align: right;
-        }}
-        .auto-index th:first-child {{ padding-left: 48px; }} /* Aligne l'en-tête avec les noms de chansons */
-
+        .auto-index tbody tr td:first-child::before {{ content: counter(row-num) "."; color: #999; font-weight: bold; display: inline-block; width: 25px; margin-right: 8px; text-align: right; }}
+        .auto-index th:first-child {{ padding-left: 48px; }}
+        
         .sortable th {{ cursor: pointer; position: relative; padding-right: 20px; }}
         .sortable th:hover {{ background-color: #e2e8e5; }}
         .sortable th::after {{ content: '↕'; position: absolute; right: 5px; color: #bbb; }}
@@ -306,6 +468,7 @@ html_content = f"""
             <div class="tab">
               <button class="tablinks" onclick="openTab(event, 'Artiste')" id="defaultOpen">👩‍🎤 Artist</button>
               <button class="tablinks" onclick="openTab(event, 'Listeners')">🌍 Listeners</button>
+              <button class="tablinks" onclick="openTab(event, 'Albums')">💿 Albums</button>
               <button class="tablinks" onclick="openTab(event, 'Global')">📊 Songs</button>
               <button class="tablinks" onclick="openTab(event, 'Evolution')">📈 Evolution</button>
               <button class="tablinks" onclick="openTab(event, 'Prediction')">🔮 Prediction</button>
@@ -317,15 +480,13 @@ html_content = f"""
             <div id="Artiste" class="tabcontent">
                 <h2 style="color: #257059; margin-top: 0;">Streams Overview</h2>
                 <div style="overflow-x: auto;">{html_tableau_resume}</div>
-                
-                <h2 style="color: #257059; margin-top: 40px;">Monthly Listeners</h2>
+                <h2 style="color: #257059; margin-top: 40px;">🌍 Monthly Listeners</h2>
                 <p style="color: #666; font-style: italic; margin-top: -10px;">👇 Click to see global ranking and evolution.</p>
                 <div class="big-listener-btn listeners-clickable" onclick="allerVersListeners()">
                     {html_listeners_grid}
                 </div>
-                
                 <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
-                <h2 style="color: #257059;">Daily Market Share</h2>
+                <h2 style="color: #257059;">🍩 Daily Market Share</h2>
                 <p style="color: #666; margin-top: -10px;">Top 10 songs generating the most streams today</p>
                 <div class="donut-container"><canvas id="chartMarketShare"></canvas></div>
             </div>
@@ -349,7 +510,14 @@ html_content = f"""
                 </div>
             </div>
 
-            <!-- AUTRES ONGLETS (Maintenant avec auto-index !) -->
+            <!-- NOUVEL ONGLET ALBUMS -->
+            <div id="Albums" class="tabcontent">
+                <h2 style="color: #257059; margin-top: 0;">Discography</h2>
+                <p style="color: #666; font-style: italic; margin-top: -10px;">Click on an album to see its tracklist and evolution.</p>
+                {html_tableau_albums_list}
+            </div>
+
+            <!-- AUTRES ONGLETS -->
             <div id="Global" class="tabcontent">{html_tableau_global}</div>
             <div id="Evolution" class="tabcontent">{html_tableau_evo}</div>
             <div id="Prediction" class="tabcontent">
@@ -359,8 +527,8 @@ html_content = f"""
             
             <div id="Milestones" class="tabcontent">
                 <div class="subtab">
-                    <button class="subtab-ms active" onclick="openSubTab(event, 'MS-Targets', 'subtab-ms')" id="defaultMS">Next 100M Targets</button>
-                    <button class="subtab-ms" onclick="openSubTab(event, 'MS-Overtakes', 'subtab-ms')">Time to Overtake</button>
+                    <button class="subtab-ms active" onclick="openSubTab(event, 'MS-Targets', 'subtab-ms')" id="defaultMS">🎯 Next 100M Targets</button>
+                    <button class="subtab-ms" onclick="openSubTab(event, 'MS-Overtakes', 'subtab-ms')">🏎️ Time to Overtake</button>
                 </div>
                 <div id="MS-Targets" class="subtab-ms-content" style="display:block;">
                     <div class="info-prediction">Estimated days to reach the next 100M threshold based on current Daily Streams.</div>
@@ -387,14 +555,14 @@ html_content = f"""
             </div>
         </div>
 
-        <!-- ZONE DÉTAIL -->
+        <!-- ZONE DÉTAIL CHANSON -->
         <div class="card" id="PageDetailChanson" style="display: none;">
             <button class="btn-retour" onclick="fermerPopups()">⬅ Back to Dashboard</button>
             <h2 id="TitreChansonDetail" style="text-align: center; color: #257059; font-size: 2em; margin-top: 0;">Titre</h2>
             <div class="chart-container" style="height: 350px;"><canvas id="chartChansonTotal"></canvas></div>
             <div class="subtab" style="margin-top: 30px;">
                 <button class="subtab-song active" onclick="openSubTab(event, 'Song-Daily-Brut', 'subtab-song')" id="defaultSong">Daily Streams</button>
-                <button class="subtab-song" onclick="openSubTab(event, 'Song-Daily-Lisse', 'subtab-song')">7-Day Rolling Average</button>
+                <button class="subtab-song" onclick="openSubTab(event, 'Song-Daily-Lisse', 'subtab-song')">🌊 7-Day Rolling Average</button>
             </div>
             <div id="Song-Daily-Brut" class="subtab-song-content" style="display:block;">
                 <div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily"></canvas></div>
@@ -403,6 +571,19 @@ html_content = f"""
                 <div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily7d"></canvas></div>
             </div>
         </div>
+
+        <!-- ZONE DÉTAIL ALBUM (NOUVEAU) -->
+        <div class="card" id="PageDetailAlbum" style="display: none;">
+            <button class="btn-retour" onclick="fermerPopups()">⬅ Back to Dashboard</button>
+            <h2 id="TitreAlbumDetail" style="text-align: center; color: #257059; font-size: 2em; margin-top: 0;">Album</h2>
+            <div class="chart-container" style="height: 350px;"><canvas id="chartAlbumTotal"></canvas></div>
+            <div class="chart-container" style="height: 350px;"><canvas id="chartAlbumDaily"></canvas></div>
+            <h3 style="color: #257059; margin-top: 40px; text-align: center;">💿 Tracklist Performance</h3>
+            <div id="album-tracklists-container">
+                {html_album_tracklists}
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -415,10 +596,8 @@ html_content = f"""
       document.getElementById(tabName).style.display = "block";
       if(evt) evt.currentTarget.className += " active";
       
-      // 💡 NOUVEAU : Réinitialisation automatique des sous-onglets !
       if(tabName === 'Listeners' && document.getElementById('defaultList')) document.getElementById('defaultList').click();
       if(tabName === 'Milestones' && document.getElementById('defaultMS')) document.getElementById('defaultMS').click();
-      
       window.dispatchEvent(new Event('resize')); 
     }}
     document.getElementById("defaultOpen").click();
@@ -443,6 +622,7 @@ html_content = f"""
 
     function fermerPopups() {{
         document.getElementById('PageDetailChanson').style.display = 'none';
+        document.getElementById('PageDetailAlbum').style.display = 'none';
         document.getElementById('DashboardPrincipal').style.display = 'block';
     }}
 
@@ -450,13 +630,13 @@ html_content = f"""
         document.querySelectorAll('.table-listeners tbody tr').forEach(row => {{
             if (row.cells[1] && row.cells[1].innerText.includes('Ariana Grande')) {{
                 row.style.backgroundColor = '#d1ede3';
+                row.style.fontWeight = 'bold';
                 row.style.borderLeft = '5px solid #257059';
-                row.cells[1].innerText = 'Ariana Grande';
+                row.cells[1].innerText = '⭐ Ariana Grande';
             }}
         }});
     }});
 
-    // 💡 NOUVEAU : On utilise textContent pour que le script de tri IGNORE les compteurs CSS (1. 2. 3.) !
     document.querySelectorAll('.sortable th').forEach(th => {{
         th.addEventListener('click', () => {{
             const table = th.closest('table');
@@ -531,6 +711,7 @@ html_content = f"""
 
     function afficherDetailsChanson(uid) {{
         document.getElementById('DashboardPrincipal').style.display = 'none';
+        document.getElementById('PageDetailAlbum').style.display = 'none';
         document.getElementById('PageDetailChanson').style.display = 'block';
         document.getElementById('defaultSong').click();
         
@@ -556,6 +737,36 @@ html_content = f"""
         window.scrollTo(0, 0);
     }}
 
+    // --- LOGIQUE ALBUMS (NOUVEAU) ---
+    const albums_js_data = {albums_js_data_json};
+    let graphAlbumTotal = null, graphAlbumDaily = null;
+
+    function afficherDetailsAlbum(albumIndex) {{
+        document.getElementById('DashboardPrincipal').style.display = 'none';
+        document.getElementById('PageDetailChanson').style.display = 'none';
+        document.getElementById('PageDetailAlbum').style.display = 'block';
+        
+        // Cache toutes les tracklists, et affiche la bonne
+        document.querySelectorAll('.album-tracklist-content').forEach(el => el.style.display = 'none');
+        document.getElementById('tracklist-album-' + albumIndex).style.display = 'block';
+        
+        const donnees = albums_js_data[albumIndex];
+        document.getElementById('TitreAlbumDetail').innerText = "💿 " + donnees.titre;
+
+        if (graphAlbumTotal) graphAlbumTotal.destroy();
+        if (graphAlbumDaily) graphAlbumDaily.destroy();
+
+        graphAlbumTotal = new Chart(document.getElementById('chartAlbumTotal').getContext('2d'), {{
+            type: 'line', data: {{ labels: donnees.dates, datasets:[{{ label: 'Total Streams (Album)', data: donnees.streams, borderColor: '#8e44ad', backgroundColor: 'rgba(142,68,173,0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
+            options: {{ responsive: true, maintainAspectRatio: false }}
+        }});
+        graphAlbumDaily = new Chart(document.getElementById('chartAlbumDaily').getContext('2d'), {{
+            type: 'line', data: {{ labels: donnees.dates, datasets:[{{ label: 'Daily Streams (Album)', data: donnees.daily, borderColor: '#e67e22', backgroundColor: 'rgba(230,126,34,0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
+            options: {{ responsive: true, maintainAspectRatio: false }}
+        }});
+        window.scrollTo(0, 0);
+    }}
+
     new Chart(document.getElementById('chartListenersGlobal').getContext('2d'), {{
         type: 'line', data: {{ labels: {list_dates_js}, datasets:[{{ label: "Monthly Listeners", data: {list_vals_js}, borderColor: '#8e44ad', backgroundColor: 'rgba(142, 68, 173, 0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
         options: {{ responsive: true, maintainAspectRatio: false }}
@@ -568,4 +779,4 @@ html_content = f"""
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("✅ Dashboard mis à jour : Lignes numérotées fixes + Réinitialisation automatique des onglets !")
+print("✅ Dashboard mis à jour : L'onglet Albums complet a été intégré !")
