@@ -275,27 +275,32 @@ for i, (nom_album, tracklist_brute) in enumerate(ALBUM_TRACKS.items()):
     }
 
     # 3. Création du code HTML de la Tracklist de l'album
-    if not df_affichage_evo.empty:
-        df_tracklist = df_affichage_evo[df_affichage_evo['Unique_ID'].isin(uids_album)].copy()
-        
-        # 💡 CORRECTION ICI : On vérifie si l'album a au moins 1 chanson classée !
-        if not df_tracklist.empty:
-            # On remet l'ordre exact du dictionnaire
-            order_dict = {uid: idx for idx, uid in enumerate(uids_album)}
-            df_tracklist['Ordre_Album'] = df_tracklist['Unique_ID'].map(order_dict)
-            df_tracklist = df_tracklist.sort_values('Ordre_Album')
-            
-            df_tracklist['Chanson'] = df_tracklist.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
-            df_tracklist['Daily Actuel '] = df_tracklist['Daily_num_Aujourdhui'].apply(format_en)
-            df_tracklist['Daily Veille '] = df_tracklist['Daily_num_Hier'].apply(format_en)
-            df_tracklist['Évolution'] = df_tracklist['Différence'].apply(format_evo)
-            df_tracklist = df_tracklist[['Chanson', 'Daily Actuel ', 'Daily Veille ', 'Évolution']]
-            tbl_html = df_tracklist.to_html(index=False, classes="table-chansons auto-index", escape=False)
+    df_tracklist = df_jour[df_jour['Unique_ID'].isin(uids_album)].copy()
+    
+    if not df_tracklist.empty:
+        # On fusionne avec les évolutions si elles existent
+        if not df_affichage_evo.empty:
+            df_tracklist = pd.merge(df_tracklist, df_affichage_evo[['Unique_ID', 'Différence']], on='Unique_ID', how='left')
         else:
-            # S'il n'y a aucune chanson de l'album dans le Top Kworb aujourd'hui :
-            tbl_html = "<p style='text-align:center; padding: 20px; color: #666;'><em>Aucune chanson de cet album n'est classée dans le Top Kworb aujourd'hui.</em></p>"
+            df_tracklist['Différence'] = '-'
+            
+        # On remet l'ordre exact du dictionnaire
+        order_dict = {uid: idx for idx, uid in enumerate(uids_album)}
+        df_tracklist['Ordre_Album'] = df_tracklist['Unique_ID'].map(order_dict)
+        df_tracklist = df_tracklist.sort_values('Ordre_Album')
+        
+        # Formatage des nouvelles colonnes
+        df_tracklist['Chanson'] = df_tracklist.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
+        df_tracklist['Total Streams '] = df_tracklist['Streams_num'].apply(format_en)
+        df_tracklist['Daily Streams '] = df_tracklist['Daily_num'].apply(format_en)
+        df_tracklist['Évolution'] = df_tracklist['Différence'].apply(format_evo)
+        
+        # On sélectionne les colonnes finales
+        df_tracklist = df_tracklist[['Chanson', 'Total Streams ', 'Daily Streams ', 'Évolution']]
+        tbl_html = df_tracklist.to_html(index=False, classes="table-chansons auto-index", escape=False)
     else:
-        tbl_html = "<p style='text-align:center; padding: 20px;'><em>⏳ Attente de la prochaine mise à jour...</em></p>"
+        # S'il n'y a aucune chanson de l'album dans le Top Kworb aujourd'hui :
+        tbl_html = "<p style='text-align:center; padding: 20px; color: #666;'><em>Aucune chanson de cet album n'est classée dans le Top Kworb aujourd'hui.</em></p>"
     
     html_album_tracklists += f'<div id="tracklist-album-{i}" class="album-tracklist-content" style="display:none;">{tbl_html}</div>\n'
 
