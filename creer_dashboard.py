@@ -485,13 +485,13 @@ html_content = f"""
             <div id="Artiste" class="tabcontent">
                 <h2 style="color: #257059; margin-top: 0;">Streams Overview</h2>
                 <div style="overflow-x: auto;">{html_tableau_resume}</div>
-                <h2 style="color: #257059; margin-top: 40px;">🌍 Monthly Listeners</h2>
-                <p style="color: #666; font-style: italic; margin-top: -10px;">👇 Click to see global ranking and evolution.</p>
+                <h2 style="color: #257059; margin-top: 40px;">Monthly Listeners</h2>
+                <p style="color: #666; font-style: italic; margin-top: -10px;">Click to see global ranking and evolution.</p>
                 <div class="big-listener-btn listeners-clickable" onclick="allerVersListeners()">
                     {html_listeners_grid}
                 </div>
                 <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
-                <h2 style="color: #257059;">🍩 Daily Market Share</h2>
+                <h2 style="color: #257059;">Daily Market Share</h2>
                 <p style="color: #666; margin-top: -10px;">Top 10 songs generating the most streams today</p>
                 <div class="donut-container"><canvas id="chartMarketShare"></canvas></div>
             </div>
@@ -532,8 +532,8 @@ html_content = f"""
             
             <div id="Milestones" class="tabcontent">
                 <div class="subtab">
-                    <button class="subtab-ms active" onclick="openSubTab(event, 'MS-Targets', 'subtab-ms')" id="defaultMS">🎯 Next 100M Targets</button>
-                    <button class="subtab-ms" onclick="openSubTab(event, 'MS-Overtakes', 'subtab-ms')">🏎️ Time to Overtake</button>
+                    <button class="subtab-ms active" onclick="openSubTab(event, 'MS-Targets', 'subtab-ms')" id="defaultMS">Next 100M Targets</button>
+                    <button class="subtab-ms" onclick="openSubTab(event, 'MS-Overtakes', 'subtab-ms')">Time to Overtake</button>
                 </div>
                 <div id="MS-Targets" class="subtab-ms-content" style="display:block;">
                     <div class="info-prediction">Estimated days to reach the next 100M threshold based on current Daily Streams.</div>
