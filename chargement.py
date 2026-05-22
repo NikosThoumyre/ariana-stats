@@ -4,6 +4,7 @@ import os
 import requests
 from bs4 import BeautifulSoup
 import time 
+from io import StringIO # 💡 NOUVEAU : L'outil demandé par Pandas pour éviter le warning !
 
 url_songs = "https://kworb.net/spotify/artist/66CXWjxzNUsdJxJ2JdwvnR_songs.html"
 url_listeners = "https://kworb.net/spotify/listeners.html"
@@ -31,14 +32,16 @@ url_listeners_no_cache = f"{url_listeners}?t={timestamp}"
 # PARTIE 1 : VÉRIFICATION DES STREAMS
 # ==========================================
 response_songs = requests.get(url_songs_no_cache, headers=headers)
-response_songs.encoding = 'utf-8' # 💡 On force le bon format de lecture web
-tableaux_songs = pd.read_html(response_songs.text)
+response_songs.encoding = 'utf-8' 
+
+# 💡 CORRECTION DU WARNING : On emballe le texte dans StringIO()
+tableaux_songs = pd.read_html(StringIO(response_songs.text))
 
 df_resume_kworb = tableaux_songs[0].copy()
 df_chansons = tableaux_songs[1].copy()
 df_filtre_chansons = df_chansons[['Song Title', 'Streams', 'Daily']].copy()
 
-# 🧹 NETTOYAGE IMMÉDIAT : On lisse la ponctuation pour éviter tout problème avec le dictionnaire d'albums
+# 🧹 NETTOYAGE IMMÉDIAT
 df_filtre_chansons['Song Title'] = df_filtre_chansons['Song Title'].str.replace("’", "'", regex=False).str.replace("–", "-", regex=False)
 
 chanson_repere = df_filtre_chansons.iloc[0]['Song Title']
@@ -81,10 +84,12 @@ else:
 # PARTIE 2 : VÉRIFICATION DES LISTENERS
 # ==========================================
 response_listeners = requests.get(url_listeners_no_cache, headers=headers)
-response_listeners.encoding = 'utf-8' # 💡 On force le bon format
-df_listeners = pd.read_html(response_listeners.text)[0]
+response_listeners.encoding = 'utf-8' 
 
-# 🧹 NETTOYAGE IMMÉDIAT (Pour s'assurer que "Victoria Monét" s'écrit parfaitement par exemple)
+# 💡 CORRECTION DU WARNING : On emballe le texte dans StringIO()
+df_listeners = pd.read_html(StringIO(response_listeners.text))[0]
+
+# 🧹 NETTOYAGE IMMÉDIAT
 df_listeners['Artist'] = df_listeners['Artist'].str.replace("’", "'", regex=False).str.replace("–", "-", regex=False)
 
 df_ariana_list_actuel = df_listeners[df_listeners['Artist'] == 'Ariana Grande'].copy()
