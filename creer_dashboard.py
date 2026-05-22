@@ -135,7 +135,7 @@ ALBUM_TRACKS = {
         "eternal sunshine", "supernatural", "true story", "the boy is mine", "yes, and?",
         "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)",
         "intro (end of the world) - extended", "yes, and? (with Mariah Carey) - Remix", "supernatural (with Troye Sivan) - remix",
-        "the boy is mine (with Brandy, Monica) - Remix", "twilight zone", "warm", "dandelion", "past life", "hampstead"
+        "the boy is mine (with Brandy, Monica) - Remix", "twilight zone", "warm", "dandelion", "past life", "Hampstead"
     ],
     "Petal": [
         "Hate That I Made You Love Me"
