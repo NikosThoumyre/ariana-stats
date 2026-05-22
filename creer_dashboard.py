@@ -635,9 +635,8 @@ html_content = f"""
         document.querySelectorAll('.table-listeners tbody tr').forEach(row => {{
             if (row.cells[1] && row.cells[1].innerText.includes('Ariana Grande')) {{
                 row.style.backgroundColor = '#d1ede3';
-                row.style.fontWeight = 'bold';
                 row.style.borderLeft = '5px solid #257059';
-                row.cells[1].innerText = '⭐ Ariana Grande';
+                row.cells[1].innerText = 'Ariana Grande';
             }}
         }});
     }});
