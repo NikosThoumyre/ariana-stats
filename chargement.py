@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import os
 import requests
 from bs4 import BeautifulSoup
+import time 
 
 url_songs = "https://kworb.net/spotify/artist/66CXWjxzNUsdJxJ2JdwvnR_songs.html"
 url_listeners = "https://kworb.net/spotify/listeners.html"
@@ -14,22 +15,38 @@ nom_fichier_classement = "classement_listeners_jour.csv"
 
 print("Recherche de nouvelles données sur Kworb...")
 
+# --- 🛡️ ASTUCE ANTI-CACHE ---
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+}
+timestamp = str(int(time.time()))
+url_songs_no_cache = f"{url_songs}?t={timestamp}"
+url_listeners_no_cache = f"{url_listeners}?t={timestamp}"
+
+
 # ==========================================
 # PARTIE 1 : VÉRIFICATION DES STREAMS
 # ==========================================
-response_songs = requests.get(url_songs)
+response_songs = requests.get(url_songs_no_cache, headers=headers)
+response_songs.encoding = 'utf-8' # 💡 On force le bon format de lecture web
 tableaux_songs = pd.read_html(response_songs.text)
 
 df_resume_kworb = tableaux_songs[0].copy()
 df_chansons = tableaux_songs[1].copy()
 df_filtre_chansons = df_chansons[['Song Title', 'Streams', 'Daily']].copy()
 
+# 🧹 NETTOYAGE IMMÉDIAT : On lisse la ponctuation pour éviter tout problème avec le dictionnaire d'albums
+df_filtre_chansons['Song Title'] = df_filtre_chansons['Song Title'].str.replace("’", "'", regex=False).str.replace("–", "-", regex=False)
+
 chanson_repere = df_filtre_chansons.iloc[0]['Song Title']
 streams_actuels = str(df_filtre_chansons.iloc[0]['Streams'])
 
 maj_chansons = False
 if os.path.exists(nom_fichier_chansons):
-    df_existant = pd.read_csv(nom_fichier_chansons)
+    df_existant = pd.read_csv(nom_fichier_chansons, encoding='utf-8-sig')
     date_derniers_streams_str = df_existant['Date'].max()
     df_derniere_date = df_existant[df_existant['Date'] == date_derniers_streams_str]
     try:
@@ -42,7 +59,6 @@ if os.path.exists(nom_fichier_chansons):
         nouvelle_date_streams_str = nouvelle_date_streams_obj.strftime("%Y-%m-%d")
         maj_chansons = True
 else:
-    # 1ère création (au cas où)
     soup = BeautifulSoup(response_songs.text, 'html.parser')
     element_date = soup.find(string=lambda x: x and 'Last updated:' in x)
     date_kworb_obj = datetime.strptime(element_date.replace('Last updated:', '').strip(), "%Y/%m/%d")
@@ -64,8 +80,13 @@ else:
 # ==========================================
 # PARTIE 2 : VÉRIFICATION DES LISTENERS
 # ==========================================
-response_listeners = requests.get(url_listeners)
+response_listeners = requests.get(url_listeners_no_cache, headers=headers)
+response_listeners.encoding = 'utf-8' # 💡 On force le bon format
 df_listeners = pd.read_html(response_listeners.text)[0]
+
+# 🧹 NETTOYAGE IMMÉDIAT (Pour s'assurer que "Victoria Monét" s'écrit parfaitement par exemple)
+df_listeners['Artist'] = df_listeners['Artist'].str.replace("’", "'", regex=False).str.replace("–", "-", regex=False)
+
 df_ariana_list_actuel = df_listeners[df_listeners['Artist'] == 'Ariana Grande'].copy()
 
 if not df_ariana_list_actuel.empty:
@@ -73,12 +94,11 @@ if not df_ariana_list_actuel.empty:
     maj_listeners = False
     
     if os.path.exists(nom_fichier_listeners):
-        df_list_existant = pd.read_csv(nom_fichier_listeners)
+        df_list_existant = pd.read_csv(nom_fichier_listeners, encoding='utf-8-sig')
         date_derniers_listeners_str = df_list_existant['Date'].max()
         df_dernier_list = df_list_existant[df_list_existant['Date'] == date_derniers_listeners_str]
         listeners_enregistres = str(df_dernier_list.iloc[0]['Listeners'])
         
-        # Le déclencheur : Les chiffres des Listeners sont différents du fichier !
         if listeners_actuels != listeners_enregistres:
             nouvelle_date_list_obj = datetime.strptime(date_derniers_listeners_str, "%Y-%m-%d") + timedelta(days=1)
             nouvelle_date_list_str = nouvelle_date_list_obj.strftime("%Y-%m-%d")
