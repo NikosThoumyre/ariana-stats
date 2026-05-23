@@ -567,7 +567,7 @@ html_content = f"""
             <div class="chart-container" style="height: 350px;"><canvas id="chartChansonTotal"></canvas></div>
             <div class="subtab" style="margin-top: 30px;">
                 <button class="subtab-song active" onclick="openSubTab(event, 'Song-Daily-Brut', 'subtab-song')" id="defaultSong">Daily Streams</button>
-                <button class="subtab-song" onclick="openSubTab(event, 'Song-Daily-Lisse', 'subtab-song')">🌊 7-Day Rolling Average</button>
+                <button class="subtab-song" onclick="openSubTab(event, 'Song-Daily-Lisse', 'subtab-song')">7-Day Rolling Average</button>
             </div>
             <div id="Song-Daily-Brut" class="subtab-song-content" style="display:block;">
                 <div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily"></canvas></div>
