@@ -87,7 +87,7 @@ ALBUM_TRACKS = {
     "Dangerous Woman (Deluxe)": [
         "Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy",
         "Leave Me Lonely", "Everyday", "Sometimes", "I Don't Care", "Bad Decisions", "Touch It",
-        "Knew Better / Forever Boy", "Thinking Bout You", "Step On Up", "Jason's Song (Gave It Away)", "Focus"
+        "Knew Better / Forever Boy", "Thinking Bout You", "Step On Up", "Jason's Song (Gave It Away)"
     ],
     "Dangerous Woman (Tenth Anniversary Edition)": [
         "Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy",
