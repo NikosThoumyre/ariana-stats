@@ -138,7 +138,7 @@ ALBUM_TRACKS = {
         "the boy is mine (with Brandy, Monica) - Remix", "twilight zone", "warm", "dandelion", "past life", "Hampstead"
     ],
     "Petal": [
-        "Hate That I Made You Love Me"
+        "hate that i made you love me"
     ]
 }
 
