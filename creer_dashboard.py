@@ -142,9 +142,12 @@ ALBUM_TRACKS = {
     ],
     "The Eternal Sunshine Tour Setlist": [
         "yes, and?", "positions", "dandelion", "the boy is mine", "Saturn Returns Interlude",
-        "eternal sunshine", "just like magic", "thank u, next", "the boy is mine", "yes, and?",
-        "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)"
-    ],
+        "eternal sunshine", "just like magic", "thank u, next", "7 rings", "imperfect for you",
+        "warm", "safety net (feat. Ty Dolla $ign)", "One Last Time", "* Rain On Me (with Ariana Grande)", 
+        "Break Free", "twilight zone", "past life", "Dangerous Woman", "Honeymoon Avenue",
+        "Hampstead", "Into You", "hate that i made you love me", "we can't be friends (wait for your love)",
+        "supernatural", "ordinary things (feat. Nonna)"
+    ]
 }
 
 
