@@ -42,7 +42,7 @@ df_chansons = tableaux_songs[1].copy()
 df_filtre_chansons = df_chansons[['Song Title', 'Streams', 'Daily']].copy()
 
 # 🧹 NETTOYAGE IMMÉDIAT
-df_filtre_chansons['Song Title'] = df_filtre_chansons['Song Title'].str.replace("’", "'", regex=False).str.replace("–", "-", regex=False)
+df_filtre_chansons['Song Title'] = df_filtre_chansons['Song Title'].str.replace("’", "'", regex=False).str.replace("–", "-", regex=False).str.replace('\xa0', ' ', regex=False).str.strip()
 
 chanson_repere = df_filtre_chansons.iloc[0]['Song Title']
 streams_actuels = str(df_filtre_chansons.iloc[0]['Streams'])
