@@ -139,7 +139,12 @@ ALBUM_TRACKS = {
     ],
     "Petal": [
         "hate that i made you love me"
-    ]
+    ],
+    "The Eternal Sunshine Tour Setlist": [
+        "yes, and?", "positions", "dandelion", "the boy is mine", "Saturn Returns Interlude",
+        "eternal sunshine", "just like magic", "thank u, next", "the boy is mine", "yes, and?",
+        "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)"
+    ],
 }
 
 
