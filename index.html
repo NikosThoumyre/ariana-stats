@@ -26736,7 +26736,7 @@
             </div>
         </div>
         <div class="card" id="PageDetailChanson" style="display: none;">
-            <button class="btn-retour" onclick="fermerPopups()">⬅ Back to Dashboard</button>
+            <button class="btn-retour" onclick="retourDeChanson()">⬅ Back</button>
             <h2 id="TitreChansonDetail" style="text-align: center; color: #257059; font-size: 2em; margin-top: 0;">Titre</h2>
             <div class="chart-container" style="height: 350px;"><canvas id="chartChansonTotal"></canvas></div>
             <div class="subtab" style="margin-top: 30px;">
@@ -28666,7 +28666,25 @@
     }
     updateComparator();
 
+    // --- NOUVEAU : Le Post-it de mémoire ! ---
+    let vuePrecedenteChanson = 'DashboardPrincipal'; 
+
+    function retourDeChanson() {
+        document.getElementById('PageDetailChanson').style.display = 'none';
+        document.getElementById(vuePrecedenteChanson).style.display = 'block';
+        window.dispatchEvent(new Event('resize')); 
+    }
+
+    // --- L'ANCIENNE FONCTION MISE À JOUR ---
     function afficherDetailsChanson(uid) {
+        // 1. L'ordinateur note d'où tu viens sur son Post-it
+        if (document.getElementById('PageDetailAlbum').style.display === 'block') {
+            vuePrecedenteChanson = 'PageDetailAlbum';
+        } else {
+            vuePrecedenteChanson = 'DashboardPrincipal';
+        }
+
+        // 2. Il cache tout et affiche la chanson
         document.getElementById('DashboardPrincipal').style.display = 'none';
         document.getElementById('PageDetailAlbum').style.display = 'none';
         document.getElementById('PageDetailChanson').style.display = 'block';
@@ -28675,6 +28693,7 @@
         const donnees = historique_chansons[uid];
         document.getElementById('TitreChansonDetail').innerText = "📈 " + donnees.titre;
 
+        // 3. Il génère tes 3 graphiques (comme avant)
         if (graphTotal) graphTotal.destroy();
         if (graphDaily) graphDaily.destroy();
         if (graphDaily7d) graphDaily7d.destroy();
