@@ -169,6 +169,7 @@ if not df_over.empty:
 else:
     html_tableau_overtake = "<p style='text-align:center; padding:20px;'>Aucun dépassement en cours détecté.</p>"
 
+
 # ==========================================
 # 2. LOGIQUE DES ALBUMS
 # ==========================================
@@ -229,19 +230,133 @@ df_album_list['Évolution'] = df_album_list['Diff'].apply(format_evo)
 html_tableau_albums_list = df_album_list[['Album', 'Total Streams ', 'Daily Streams ', 'Évolution']].to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
 
 # ==========================================
-# 3. GRAPHIQUES JSON & MARKET SHARE
+# 3. GRAPHIQUES JSON & MARKET SHARE & PERIODIC STREAMS
 # ==========================================
 df_resume_full = pd.read_csv("historique_resume.csv")
-df_res_streams = df_resume_full[df_resume_full['Catégorie'] == 'Streams'].sort_values('Date')
+
+df_res_streams = df_resume_full[df_resume_full['Catégorie'] == 'Streams'].copy()
+df_res_streams['Date_obj'] = pd.to_datetime(df_res_streams['Date'])
+df_res_streams = df_res_streams.sort_values('Date_obj')
 dates_js = json.dumps(df_res_streams['Date'].tolist())
 
+df_res_daily = df_resume_full[df_resume_full['Catégorie'] == 'Daily'].copy()
+df_res_daily['Date_obj'] = pd.to_datetime(df_res_daily['Date'])
+df_res_daily = df_res_daily.sort_values('Date_obj')
+
 val_total = df_res_streams['Total'].astype(str).str.replace(',', '').str.replace(' ', '').str.replace('+', '')
-streams_total_js = json.dumps(pd.to_numeric(val_total, errors='coerce').fillna(0).tolist())
+df_res_streams['Total_int'] = pd.to_numeric(val_total, errors='coerce').fillna(0).astype(int)
+streams_total_js = json.dumps(df_res_streams['Total_int'].tolist())
 
-df_res_daily = df_resume_full[df_resume_full['Catégorie'] == 'Daily'].sort_values('Date')
 val_daily = df_res_daily['Total'].astype(str).str.replace(',', '').str.replace(' ', '').str.replace('+', '')
-streams_daily_js = json.dumps(pd.to_numeric(val_daily, errors='coerce').fillna(0).tolist())
+df_res_daily['Total_int'] = pd.to_numeric(val_daily, errors='coerce').fillna(0).astype(int)
+streams_daily_js = json.dumps(df_res_daily['Total_int'].tolist())
 
+dict_daily = dict(zip(df_res_daily['Date'], df_res_daily['Total_int']))
+
+# --- CALCUL DES MOIS ET ANNÉES (L'ALGORITHME DE SOUSTRACTION 12 MOIS) ---
+first_date_overall = df_res_streams['Date_obj'].min()
+months_names = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+html_periodic = "<div class='tracker-container'>"
+years_in_data = sorted(df_res_streams['Date_obj'].dt.year.unique())
+
+for y in reversed(years_in_data):
+    html_periodic += f"<h3 style='color:#257059; text-align:center; font-size: 1.5em; margin-bottom: 20px;'>🗓️ Periodic Streams Tracker</h3>"
+    html_periodic += "<div style='display: flex; gap: 40px; justify-content: center; width: 100%; max-width: 900px; flex-wrap: wrap; margin-bottom: 30px;'>"
+    
+    month_data = {}
+    for m in range(1, 13):
+        df_m = df_res_streams[(df_res_streams['Date_obj'].dt.year == y) & (df_res_streams['Date_obj'].dt.month == m)]
+        if df_m.empty:
+            if datetime(y, m, 1) < datetime(first_date_overall.year, first_date_overall.month, 1):
+                val = "No data"
+            else:
+                val = "-"
+            is_partial = False
+        else:
+            first_row = df_m.iloc[0]
+            last_row = df_m.iloc[-1]
+            
+            if m == 1:
+                prev_y, prev_m = y - 1, 12
+            else:
+                prev_y, prev_m = y, m - 1
+                
+            df_prev_m = df_res_streams[(df_res_streams['Date_obj'].dt.year == prev_y) & (df_res_streams['Date_obj'].dt.month == prev_m)]
+            
+            if not df_prev_m.empty:
+                last_day_prev = df_prev_m.iloc[-1]
+                gain = last_row['Total_int'] - last_day_prev['Total_int']
+                is_partial = False
+            else:
+                first_date_str = first_row['Date']
+                first_daily = dict_daily.get(first_date_str, 0)
+                gain = last_row['Total_int'] - first_row['Total_int'] + first_daily
+                is_partial = True 
+            
+            val = f"+{format_en(gain)}"
+            
+        month_data[m] = {'val': val, 'partial': is_partial}
+
+    # Colonne 1 (Jan-Juin)
+    html_periodic += "<div style='display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 300px;'>"
+    for m in range(1, 7):
+        val = month_data[m]['val']
+        partial_str = " <span style='font-size: 0.6em; color:#888; font-weight:normal;'>(partial)</span>" if month_data[m]['partial'] else ""
+        html_periodic += f"""
+        <div class="tracker-row">
+            <div class="tracker-label">{months_names[m]}{partial_str}</div>
+            <div class="tracker-value">{val}</div>
+        </div>
+        """
+    html_periodic += "</div>"
+    
+    # Colonne 2 (Juil-Dec)
+    html_periodic += "<div style='display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 300px;'>"
+    for m in range(7, 13):
+        val = month_data[m]['val']
+        partial_str = " <span style='font-size: 0.6em; color:#888; font-weight:normal;'>(partial)</span>" if month_data[m]['partial'] else ""
+        html_periodic += f"""
+        <div class="tracker-row">
+            <div class="tracker-label">{months_names[m]}{partial_str}</div>
+            <div class="tracker-value">{val}</div>
+        </div>
+        """
+    html_periodic += "</div>"
+    html_periodic += "</div>" 
+    
+    # YEAR TOTAL
+    df_y = df_res_streams[df_res_streams['Date_obj'].dt.year == y]
+    first_row_y = df_y.iloc[0]
+    last_row_y = df_y.iloc[-1]
+    
+    df_prev_y = df_res_streams[df_res_streams['Date_obj'].dt.year == y - 1]
+    if not df_prev_y.empty:
+        last_day_prev_y = df_prev_y.iloc[-1]
+        gain_y = last_row_y['Total_int'] - last_day_prev_y['Total_int']
+        since_str = ""
+    else:
+        first_date_str = first_row_y['Date']
+        first_daily = dict_daily.get(first_date_str, 0)
+        gain_y = last_row_y['Total_int'] - first_row_y['Total_int'] + first_daily
+        since_str = f"<div class='total-since'>(Since {first_date_str})</div>"
+        
+    html_periodic += f"""
+    <div class="tracker-total-container">
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div class="tracker-total-label">total</div>
+            <div style="font-weight: 900; font-size: 1.5em; margin-top: 5px; color: #222;">{y}</div>
+        </div>
+        <div class="tracker-total-value">
+            +{format_en(gain_y)}
+            {since_str}
+        </div>
+    </div>
+    """
+html_periodic += "</div>"
+
+
+# --- MARKET SHARE (DONUT) ---
 top_10 = df_jour.sort_values('Daily_num', ascending=False).head(10)
 others_daily = int(df_jour.sort_values('Daily_num', ascending=False).iloc[10:]['Daily_num'].sum())
 market_labels = top_10['Song Title'].tolist() + ["Others"]
@@ -266,9 +381,10 @@ albums_js_data_json = json.dumps(albums_js_data)
 # ==========================================
 # 4. DONNÉES ARTISTE & LISTENERS
 # ==========================================
-df_resume_jour = df_resume_full[df_resume_full['Date'] == df_resume_full['Date'].max()].drop(columns=['Date'])
+df_resume_jour = df_resume_full[df_resume_full['Date'] == df_resume_full['Date'].max()].drop(columns=['Date', 'Catégorie', 'YearMonth', 'Year', 'Total_int', 'Date_obj'], errors='ignore')
 for col in df_resume_jour.columns:
-    if col != 'Catégorie': df_resume_jour[col] = df_resume_jour[col].apply(format_en)
+    df_resume_jour[col] = df_resume_jour[col].apply(format_en)
+df_resume_jour.insert(0, 'Catégorie', ['Streams', 'Daily', 'Tracks'][:len(df_resume_jour)])
 html_tableau_resume = df_resume_jour.to_html(index=False, classes="table-chansons")
 
 df_list_full = pd.read_csv("historique_ariana_listeners.csv")
@@ -314,7 +430,7 @@ html_listeners_grid = f"""
 """
 
 # ==========================================
-# 5. CRÉATION DU FICHIER HTML (AGENCEMENT MIS À JOUR)
+# 5. CRÉATION DU FICHIER HTML
 # ==========================================
 html_content = f"""
 <!DOCTYPE html>
@@ -379,6 +495,17 @@ html_content = f"""
         .stat-card {{ background-color: #f8f9fa; border: 2px solid #eaeaea; border-radius: 12px; padding: 20px; text-align: center; flex: 1; min-width: 150px; }}
         .stat-card h4 {{ margin: 0; color: #555; font-size: 1.1em; }}
         .stat-card p {{ margin: 10px 0 0 0; color: #257059; font-size: 1.8em; font-weight: bold; }}
+
+        /* 💡 NOUVEAU CSS : DESIGN SCRAPBOOK CANVA POUR LES MOIS/ANNÉES */
+        .tracker-container {{ display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }}
+        .tracker-row {{ display: flex; align-items: stretch; width: 100%; gap: 15px; }}
+        .tracker-label {{ background-color: #f0f3f1; color: #257059; font-weight: bold; padding: 12px 15px; border: 1px dashed #b0c4b1; transform: skew(-3deg); flex: 0 0 140px; text-align: center; font-size: 1.1em; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; box-shadow: 1px 1px 3px rgba(0,0,0,0.05); white-space: nowrap; }}
+        .tracker-value {{ background-color: #222; color: #fff; font-weight: bold; font-size: 1.3em; padding: 12px 20px; flex: 1; text-align: right; letter-spacing: 1px; border-radius: 3px; display: flex; align-items: center; justify-content: flex-end; font-family: 'Courier New', Courier, monospace; }}
+        
+        .tracker-total-container {{ display: flex; align-items: center; width: 100%; max-width: 550px; gap: 20px; margin-top: 20px; padding-top: 20px; }}
+        .tracker-total-label {{ background-color: #257059; color: #fff; font-weight: bold; font-size: 2em; padding: 10px 20px; transform: skew(-3deg); box-shadow: 2px 2px 0px rgba(0,0,0,0.2); }}
+        .tracker-total-value {{ background-color: #f4f7f6; color: #222; font-weight: 900; font-size: 2.8em; padding: 15px 30px; flex: 1; text-align: center; border: 2px solid #257059; box-shadow: 4px 4px 0px rgba(37,112,89,0.3); font-family: 'Segoe UI', sans-serif; letter-spacing: 1px; display: flex; flex-direction: column; justify-content: center; }}
+        .total-since {{ font-size: 0.3em; color: #666; font-weight: normal; margin-top: 5px; letter-spacing: 0; align-self: flex-end; }}
     </style>
 </head>
 <body>
@@ -392,7 +519,6 @@ html_content = f"""
         
         <div class="card" id="DashboardPrincipal">
             
-            <!-- NOUVEL AGENCEMENT DES ONGLETS -->
             <div class="tab">
               <button class="tablinks" onclick="openTab(event, 'Artiste')" id="defaultOpen">👩‍🎤 Artist</button>
               <button class="tablinks" onclick="openTab(event, 'Listeners')">🌍 Listeners</button>
@@ -401,19 +527,19 @@ html_content = f"""
               <button class="tablinks" onclick="openTab(event, 'SpotifyCharts')">🌐 Spotify Charts</button>
             </div>
 
-            <!-- ONGLET 1 : ARTISTE (Avec ses sous-onglets) -->
+            <!-- ONGLET ARTISTE -->
             <div id="Artiste" class="tabcontent">
                 <div class="subtab">
                     <button class="subtab-artist active" onclick="openSubTab(event, 'Artist-Overview', 'subtab-artist')" id="defaultArtist">Overview</button>
-                    <button class="subtab-artist" onclick="openSubTab(event, 'Artist-Charts', 'subtab-artist')">Charts</button>
-                    <button class="subtab-artist" onclick="openSubTab(event, 'Artist-Periodic', 'subtab-artist')">Monthly/Yearly Streams</button>
+                    <button class="subtab-artist" onclick="openSubTab(event, 'Artist-Charts', 'subtab-artist')">📉 Charts</button>
+                    <button class="subtab-artist" onclick="openSubTab(event, 'Artist-Periodic', 'subtab-artist')">📅 Monthly/Yearly Streams</button>
                 </div>
                 
                 <div id="Artist-Overview" class="subtab-artist-content" style="display:block;">
                     <h2 style="color: #257059; margin-top: 0;">Streams Overview</h2>
                     <div style="overflow-x: auto;">{html_tableau_resume}</div>
                     <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
-                    <h2 style="color: #257059;">Daily Market Share</h2>
+                    <h2 style="color: #257059;">🍩 Daily Market Share</h2>
                     <p style="color: #666; margin-top: -10px;">Top 10 songs generating the most streams today</p>
                     <div class="donut-container"><canvas id="chartMarketShare"></canvas></div>
                 </div>
@@ -423,7 +549,7 @@ html_content = f"""
                     <div class="chart-container"><canvas id="chartTotalGlobal"></canvas></div>
                     <div class="chart-container"><canvas id="chartDailyGlobal"></canvas></div>
                     <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
-                    <h2 style="text-align:center; color:#257059;">Song Comparator</h2>
+                    <h2 style="text-align:center; color:#257059;">⚔️ Song Comparator</h2>
                     <div style="display:flex; justify-content:center; gap: 20px; margin-bottom: 20px;">
                         <select id="songSelect1" onchange="updateComparator()" style="padding: 10px; border-radius: 8px; font-size: 16px; border: 2px solid #257059; max-width: 300px;"></select>
                         <span style="font-size: 20px; align-self: center; font-weight: bold; color: #555;">VS</span>
@@ -433,11 +559,11 @@ html_content = f"""
                 </div>
 
                 <div id="Artist-Periodic" class="subtab-artist-content" style="display:none;">
-                    <p style='text-align:center; padding: 50px; color:#666;'><em>Work in progress...</em></p>
+                    {html_periodic}
                 </div>
             </div>
 
-            <!-- ONGLET 2 : LISTENERS -->
+            <!-- ONGLET LISTENERS -->
             <div id="Listeners" class="tabcontent">
                 <div class="subtab">
                     <button class="subtab-list active" onclick="openSubTab(event, 'List-Overview', 'subtab-list')" id="defaultList">Overview</button>
@@ -456,21 +582,21 @@ html_content = f"""
                 </div>
             </div>
 
-            <!-- ONGLET 3 : ALBUMS -->
+            <!-- ONGLET ALBUMS -->
             <div id="Albums" class="tabcontent">
                 <h2 style="color: #257059; margin-top: 0;">Discography</h2>
                 <p style="color: #666; font-style: italic; margin-top: -10px;">Click on an album to see its tracklist and evolution.</p>
                 {html_tableau_albums_list}
             </div>
 
-            <!-- ONGLET 4 : SONGS (Avec ses sous-onglets) -->
+            <!-- ONGLET SONGS -->
             <div id="Songs" class="tabcontent">
                 <div class="subtab">
                     <button class="subtab-songs active" onclick="openSubTab(event, 'Songs-Overview', 'subtab-songs')" id="defaultSongs">Overview</button>
-                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Evolution', 'subtab-songs')">Evolution</button>
-                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Predictions', 'subtab-songs')">Predictions</button>
-                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Targets', 'subtab-songs')">Next 100M Targets</button>
-                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Overtakes', 'subtab-songs')">Time to Overtake</button>
+                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Evolution', 'subtab-songs')">📈 Evolution</button>
+                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Predictions', 'subtab-songs')">🔮 Predictions</button>
+                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Targets', 'subtab-songs')">🎯 Next 100M Targets</button>
+                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Overtakes', 'subtab-songs')">🏎️ Time to Overtake</button>
                 </div>
                 
                 <div id="Songs-Overview" class="subtab-songs-content" style="display:block;">
@@ -493,7 +619,7 @@ html_content = f"""
                 </div>
             </div>
 
-            <!-- ONGLET 5 : SPOTIFY CHARTS -->
+            <!-- ONGLET SPOTIFY CHARTS -->
             <div id="SpotifyCharts" class="tabcontent">
                 <h2 style="color: #257059; text-align: center; margin-top: 20px;">🌐 Spotify Charts</h2>
                 <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon... Fetching data from new sources in progress!</em></p>
@@ -508,7 +634,7 @@ html_content = f"""
             <div class="chart-container" style="height: 350px;"><canvas id="chartChansonTotal"></canvas></div>
             <div class="subtab" style="margin-top: 30px;">
                 <button class="subtab-song active" onclick="openSubTab(event, 'Song-Daily-Brut', 'subtab-song')" id="defaultSong">Daily Streams</button>
-                <button class="subtab-song" onclick="openSubTab(event, 'Song-Daily-Lisse', 'subtab-song')">7-Day Rolling Average</button>
+                <button class="subtab-song" onclick="openSubTab(event, 'Song-Daily-Lisse', 'subtab-song')">🌊 7-Day Rolling Average</button>
             </div>
             <div id="Song-Daily-Brut" class="subtab-song-content" style="display:block;"><div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily"></canvas></div></div>
             <div id="Song-Daily-Lisse" class="subtab-song-content" style="display:none;"><div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily7d"></canvas></div></div>
@@ -536,7 +662,6 @@ html_content = f"""
       document.getElementById(tabName).style.display = "block";
       if(evt) evt.currentTarget.className += " active";
       
-      // Auto-reset des sous-onglets lors de la navigation
       if(tabName === 'Artiste' && document.getElementById('defaultArtist')) document.getElementById('defaultArtist').click();
       if(tabName === 'Listeners' && document.getElementById('defaultList')) document.getElementById('defaultList').click();
       if(tabName === 'Songs' && document.getElementById('defaultSongs')) document.getElementById('defaultSongs').click();
@@ -544,6 +669,15 @@ html_content = f"""
       window.dispatchEvent(new Event('resize')); 
     }}
     document.getElementById("defaultOpen").click();
+
+    function allerVersListeners() {{
+        let tabs = document.getElementsByClassName("tablinks");
+        for (let i = 0; i < tabs.length; i++) {{
+            if (tabs[i].innerText.includes("Listeners")) {{ tabs[i].click(); break; }}
+        }}
+        document.getElementById("defaultList").click();
+        window.scrollTo(0, 0);
+    }}
 
     function openSubTab(evt, tabName, groupClass) {{
       var i, tabcontent, tablinks;
@@ -554,7 +688,6 @@ html_content = f"""
       document.getElementById(tabName).style.display = "block";
       if(evt) evt.currentTarget.className += " active";
       
-      // Très important pour que les graphiques se redimensionnent correctement
       window.dispatchEvent(new Event('resize'));
     }}
 
@@ -660,6 +793,7 @@ html_content = f"""
         let d1 = historique_chansons[sel1.value];
         let d2 = historique_chansons[sel2.value];
         if (graphCompare) graphCompare.destroy();
+        
         graphCompare = new Chart(document.getElementById('chartComparator').getContext('2d'), {{
             type: 'line',
             data: {{
@@ -755,4 +889,4 @@ html_content = f"""
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("✅ Dashboard mis à jour avec le nouveau design de sous-onglets !")
+print("✅ Dashboard mis à jour avec le design Canva complet et parfaitement aligné !")
