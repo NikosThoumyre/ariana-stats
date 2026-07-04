@@ -3,6 +3,7 @@ from datetime import datetime
 import json
 import html
 import math
+import os
 
 # --- FONCTIONS UTILITAIRES ---
 def rendre_cliquable(row, colonne_titre, uid_col='Unique_ID'):
@@ -49,16 +50,8 @@ def resolve_track_id(t):
 # 0. LE DICTIONNAIRE DES ALBUMS
 # ==========================================
 ALBUM_TRACKS = {
-    "Yours Truly": [
-        "Honeymoon Avenue", "Baby I___0", "Right There (feat. Big Sean)", "Tattooed Heart", "Lovin' It", "Piano",
-        "Daydreamin'", "The Way (feat. Mac Miller)", "You'll Never Know", "Almost Is Never Enough (with Nathan Sykes)", "* Popular Song (MIKA & Ariana Grande)", "Better Left Unsaid"
-    ],
-    "Yours Truly (Tenth Anniversary Edition)": [
-        "Honeymoon Avenue", "Baby I___0", "Right There (feat. Big Sean)", "Tattooed Heart", "Lovin' It", "Piano",
-        "Daydreamin'", "The Way (feat. Mac Miller)", "You'll Never Know", "Almost Is Never Enough (with Nathan Sykes)", "* Popular Song (MIKA & Ariana Grande)", "Better Left Unsaid",
-        "Honeymoon Avenue - Live from London", "Daydreamin' - Live from London", "Baby I - Live from London",
-        "Tattooed Heart - Live from London", "Right There - Live from London (feat. Big Sean)", "The Way - Live from London (feat. Mac Miller)"
-    ],
+    "Yours Truly": ["Honeymoon Avenue", "Baby I___0", "Right There (feat. Big Sean)", "Tattooed Heart", "Lovin' It", "Piano", "Daydreamin'", "The Way (feat. Mac Miller)", "You'll Never Know", "Almost Is Never Enough (with Nathan Sykes)", "* Popular Song (MIKA & Ariana Grande)", "Better Left Unsaid"],
+    "Yours Truly (Tenth Anniversary Edition)": ["Honeymoon Avenue", "Baby I___0", "Right There (feat. Big Sean)", "Tattooed Heart", "Lovin' It", "Piano", "Daydreamin'", "The Way (feat. Mac Miller)", "You'll Never Know", "Almost Is Never Enough (with Nathan Sykes)", "* Popular Song (MIKA & Ariana Grande)", "Better Left Unsaid", "Honeymoon Avenue - Live from London", "Daydreamin' - Live from London", "Baby I - Live from London", "Tattooed Heart - Live from London", "Right There - Live from London (feat. Big Sean)", "The Way - Live from London (feat. Mac Miller)"],
     "Christmas Kisses": ["Last Christmas", "Love Is Everything", "Snow In California", "Santa Baby", "Santa Tell Me"],
     "My Everything": ["Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby", "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything"],
     "My Everything (Deluxe)": ["Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby", "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything", "* Bang Bang", "Only 1", "You Don't Know Me"],
@@ -81,6 +74,7 @@ ALBUM_TRACKS = {
 # 1. DONNÉES CHANSONS & CALCULS
 # ==========================================
 df = pd.read_csv("historique_ariana.csv")
+df['Date_obj'] = pd.to_datetime(df['Date'])
 df['Occurence'] = df.groupby(['Date', 'Song Title']).cumcount()
 df['Unique_ID'] = df['Song Title'] + "___" + df['Occurence'].astype(str)
 df['Streams_num'] = pd.to_numeric(df['Streams'], errors='coerce').fillna(0)
@@ -98,14 +92,12 @@ if len(dates) >= 2:
 else:
     df_affichage_evo = pd.DataFrame(columns=['Song Title', 'Daily_num_Aujourdhui', 'Daily_num_Hier', 'Différence', 'Unique_ID'])
 
-# --- Global ---
 df_global = df_jour.copy()
 df_global['Chanson'] = df_global.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
 df_global['Streams '] = df_global['Streams_num'].apply(format_en)
 df_global['Daily '] = df_global['Daily_num'].apply(format_en)
 html_tableau_global = df_global[['Chanson', 'Streams ', 'Daily ']].fillna('-').to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
 
-# --- Évolution ---
 if len(dates) >= 2:
     df_evo_visuel = df_affichage_evo.copy()
     df_evo_visuel['Chanson'] = df_evo_visuel.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
@@ -117,20 +109,18 @@ if len(dates) >= 2:
 else:
     html_tableau_evo = "<p style='text-align:center;'><em>⏳ Reviens à la prochaine mise à jour pour voir les évolutions !</em></p>"
 
-# --- Prédiction ---
-date_obj = datetime.strptime(date_jour, "%Y-%m-%d")
-jours_restants = (datetime(date_obj.year, 12, 31) - date_obj).days
+date_obj_jour = datetime.strptime(date_jour, "%Y-%m-%d")
+jours_restants = (datetime(date_obj_jour.year, 12, 31) - date_obj_jour).days
 df_pred = df_jour.copy()
 df_pred['Prédiction'] = df_pred['Streams_num'] + (df_pred['Daily_num'] * jours_restants)
 df_pred = df_pred.sort_values(by='Prédiction', ascending=False)
 df_pred['Chanson'] = df_pred.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
 df_pred['Streams Actuels '] = df_pred['Streams_num'].apply(format_en)
 df_pred['Daily Actuel '] = df_pred['Daily_num'].apply(format_en)
-df_pred[f'Prédiction (au 31 Déc {date_obj.year})'] = df_pred['Prédiction'].apply(format_en)
-df_pred_final = df_pred[['Chanson', 'Streams Actuels ', 'Daily Actuel ', f'Prédiction (au 31 Déc {date_obj.year})']]
+df_pred[f'Prédiction (au 31 Déc {date_obj_jour.year})'] = df_pred['Prédiction'].apply(format_en)
+df_pred_final = df_pred[['Chanson', 'Streams Actuels ', 'Daily Actuel ', f'Prédiction (au 31 Déc {date_obj_jour.year})']]
 html_tableau_pred = df_pred_final.to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
 
-# --- Milestones & Overtakes ---
 df_ms = df_jour[df_jour['Daily_num'] > 0].copy()
 df_ms['Next Milestone'] = df_ms['Streams_num'].apply(lambda s: math.ceil((s + 1) / 100_000_000) * 100_000_000)
 df_ms['Remaining'] = df_ms['Next Milestone'] - df_ms['Streams_num']
@@ -234,11 +224,13 @@ html_tableau_albums_list = df_album_list[['Album', 'Total Streams ', 'Daily Stre
 # ==========================================
 df_resume_full = pd.read_csv("historique_resume.csv")
 
+# Données des flux totaux
 df_res_streams = df_resume_full[df_resume_full['Catégorie'] == 'Streams'].copy()
 df_res_streams['Date_obj'] = pd.to_datetime(df_res_streams['Date'])
 df_res_streams = df_res_streams.sort_values('Date_obj')
 dates_js = json.dumps(df_res_streams['Date'].tolist())
 
+# Données journalières
 df_res_daily = df_resume_full[df_resume_full['Catégorie'] == 'Daily'].copy()
 df_res_daily['Date_obj'] = pd.to_datetime(df_res_daily['Date'])
 df_res_daily = df_res_daily.sort_values('Date_obj')
@@ -276,12 +268,10 @@ for y in reversed(years_in_data):
         else:
             first_row = df_m.iloc[0]
             last_row = df_m.iloc[-1]
-            
             if m == 1:
                 prev_y, prev_m = y - 1, 12
             else:
                 prev_y, prev_m = y, m - 1
-                
             df_prev_m = df_res_streams[(df_res_streams['Date_obj'].dt.year == prev_y) & (df_res_streams['Date_obj'].dt.month == prev_m)]
             
             if not df_prev_m.empty:
@@ -293,16 +283,14 @@ for y in reversed(years_in_data):
                 first_daily = dict_daily.get(first_date_str, 0)
                 gain = last_row['Total_int'] - first_row['Total_int'] + first_daily
                 is_partial = True 
-            
-            val = f"+{format_en(gain)}"
-            
+            val = f"+{format_en(gain)}" if isinstance(gain, int) else val
         month_data[m] = {'val': val, 'partial': is_partial}
 
     # Colonne 1 (Jan-Juin)
     html_periodic += "<div style='display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 300px;'>"
     for m in range(1, 7):
         val = month_data[m]['val']
-        partial_str = " <span style='font-size: 0.6em; color:#888; font-weight:normal;'>(partial)</span>" if month_data[m]['partial'] else ""
+        partial_str = " <span style='font-size: 0.7em; color:#888; font-weight:normal;'>(partial)</span>" if month_data[m]['partial'] else ""
         html_periodic += f"""
         <div class="tracker-row">
             <div class="tracker-label">{months_names[m]}{partial_str}</div>
@@ -315,7 +303,7 @@ for y in reversed(years_in_data):
     html_periodic += "<div style='display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 300px;'>"
     for m in range(7, 13):
         val = month_data[m]['val']
-        partial_str = " <span style='font-size: 0.6em; color:#888; font-weight:normal;'>(partial)</span>" if month_data[m]['partial'] else ""
+        partial_str = " <span style='font-size: 0.7em; color:#888; font-weight:normal;'>(partial)</span>" if month_data[m]['partial'] else ""
         html_periodic += f"""
         <div class="tracker-row">
             <div class="tracker-label">{months_names[m]}{partial_str}</div>
@@ -339,7 +327,7 @@ for y in reversed(years_in_data):
         first_date_str = first_row_y['Date']
         first_daily = dict_daily.get(first_date_str, 0)
         gain_y = last_row_y['Total_int'] - first_row_y['Total_int'] + first_daily
-        since_str = f"<div class='total-since'>(Since {first_date_str})</div>"
+        since_str = f"<div class='total-since'>Year {y} (Since {first_date_str})</div>"
         
     html_periodic += f"""
     <div class="tracker-total-container">
@@ -355,8 +343,45 @@ for y in reversed(years_in_data):
     """
 html_periodic += "</div>"
 
+# --- TOP 10 GAINERS ---
+current_year = date_obj_jour.year
+current_month = date_obj_jour.month
+current_month_name = months_names[current_month]
 
-# --- MARKET SHARE (DONUT) ---
+df_year_songs = df[df['Date_obj'].dt.year == current_year].sort_values('Date_obj')
+top10_y_html = ""
+if not df_year_songs.empty:
+    gains_y = []
+    for uid, grp in df_year_songs.groupby('Unique_ID'):
+        gain = grp['Streams_num'].iloc[-1] - grp['Streams_num'].iloc[0] + grp['Daily_num'].iloc[0]
+        titre = grp['Song Title'].iloc[0]
+        gains_y.append({'uid': uid, 'titre': titre, 'gain': gain})
+    df_top_y = pd.DataFrame(gains_y).sort_values('gain', ascending=False).head(10)
+    top10_y_html += f"<div class='top10-card'><h3 class='top10-title'>🏆 Top 10 - Year {current_year}</h3>"
+    for idx, row in enumerate(df_top_y.to_dict('records')):
+        titre_lien = rendre_cliquable(row, 'titre', 'uid')
+        top10_y_html += f"<div class='top10-item'><span class='top10-rank'>{idx+1}.</span><span class='top10-song'>{titre_lien}</span><span class='top10-streams'>+{format_en(row['gain'])}</span></div>"
+    top10_y_html += "</div>"
+
+df_month_songs = df[(df['Date_obj'].dt.year == current_year) & (df['Date_obj'].dt.month == current_month)].sort_values('Date_obj')
+top10_m_html = ""
+if not df_month_songs.empty:
+    gains_m = []
+    for uid, grp in df_month_songs.groupby('Unique_ID'):
+        gain = grp['Streams_num'].iloc[-1] - grp['Streams_num'].iloc[0] + grp['Daily_num'].iloc[0]
+        titre = grp['Song Title'].iloc[0]
+        gains_m.append({'uid': uid, 'titre': titre, 'gain': gain})
+    df_top_m = pd.DataFrame(gains_m).sort_values('gain', ascending=False).head(10)
+    top10_m_html += f"<div class='top10-card'><h3 class='top10-title'>📅 Top 10 - {current_month_name} {current_year}</h3>"
+    for idx, row in enumerate(df_top_m.to_dict('records')):
+        titre_lien = rendre_cliquable(row, 'titre', 'uid')
+        top10_m_html += f"<div class='top10-item'><span class='top10-rank'>{idx+1}.</span><span class='top10-song'>{titre_lien}</span><span class='top10-streams'>+{format_en(row['gain'])}</span></div>"
+    top10_m_html += "</div>"
+
+html_top10_container = f"<div class='top10-container'>{top10_m_html}{top10_y_html}</div>"
+
+
+# --- MARKET SHARE (DONUT) & JSON DES CHANSONS ---
 top_10 = df_jour.sort_values('Daily_num', ascending=False).head(10)
 others_daily = int(df_jour.sort_values('Daily_num', ascending=False).iloc[10:]['Daily_num'].sum())
 market_labels = top_10['Song Title'].tolist() + ["Others"]
@@ -364,6 +389,7 @@ market_data = [int(x) for x in top_10['Daily_num'].tolist()] + [others_daily]
 market_labels_js = json.dumps(market_labels)
 market_data_js = json.dumps(market_data)
 
+# 💡 ATTENTION : C'EST CE BLOC QUI AVAIT DISPARU ET CAUSAIT L'ERREUR 'historique_chansons_js is not defined' !
 historique_chansons = {}
 for uid in df['Unique_ID'].unique():
     df_chanson = df[df['Unique_ID'] == uid].sort_values('Date')
@@ -377,6 +403,7 @@ for uid in df['Unique_ID'].unique():
     }
 historique_chansons_js = json.dumps(historique_chansons)
 albums_js_data_json = json.dumps(albums_js_data)
+
 
 # ==========================================
 # 4. DONNÉES ARTISTE & LISTENERS
@@ -430,7 +457,72 @@ html_listeners_grid = f"""
 """
 
 # ==========================================
-# 5. CRÉATION DU FICHIER HTML
+# 5. SPOTIFY CHARTS MANUEL
+# ==========================================
+html_spotify_daily_songs = ""
+if os.path.exists("spotify_daily_songs.csv"):
+    df_sc = pd.read_csv("spotify_daily_songs.csv", dtype=str, encoding='utf-8-sig').fillna('-')
+    if 'Artist' in df_sc.columns:
+        df_sc = df_sc[df_sc['Artist'].str.contains('Ariana', case=False, na=False)]
+        
+        if not df_sc.empty:
+            html_spotify_daily_songs += "<div class='sc-cards-grid'>"
+            for idx, row in df_sc.iterrows():
+                trend = row.get('Trend', '-')
+                trend_class = "sc-neutral"
+                if '↑' in trend or '+' in trend: trend_class = "sc-up"
+                elif '↓' in trend or '-' in trend: trend_class = "sc-down"
+                
+                track_name = row.get('Track', '-')
+                # On cherche la première date d'entrée dans notre historique perso Kworb
+                df_chanson_hist = df[df['Song Title'] == track_name]
+                first_entry = "-"
+                if not df_chanson_hist.empty:
+                    first_entry = df_chanson_hist['Date'].min()
+
+                html_spotify_daily_songs += f"""
+                <div class="sc-ariana-card">
+                    <div class="sc-card-main">
+                        <img src="{row.get('Image_URL', '')}" class="sc-ariana-img-large" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';">
+                        
+                        <div class="sc-card-info">
+                            <div class="sc-ariana-rank">#{row.get('Rank', '-')} <span class="sc-trend {trend_class}">{trend}</span></div>
+                            <div class="sc-ariana-track">{html.escape(track_name)}</div>
+                            <div class="sc-ariana-streams">{format_en(row.get('Streams', '-'))} streams</div>
+                            
+                            <div class="sc-ariana-stats">
+                                <div class="sc-astat"><span class="sc-alab">Peak</span><span class="sc-aval">{row.get('Peak', '-')}</span></div>
+                                <div class="sc-astat"><span class="sc-alab">Prev</span><span class="sc-aval">{row.get('Prev', '-')}</span></div>
+                                <div class="sc-astat"><span class="sc-alab">Streak</span><span class="sc-aval">{row.get('Streak', '-')} days</span></div>
+                                <div class="sc-astat"><span class="sc-alab">1st Entry Pos</span><span class="sc-aval">#{row.get('First entry position', '-')}</span></div>
+                            </div>
+                            
+                            <div class="sc-toggle" onclick="toggleDetails('daily_{idx}', this)">More ⌄</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sc-details" id="sc-detail-daily_{idx}">
+                        <div class="sc-grid">
+                            <div><strong>First entry date (History)</strong></div><div>{first_entry}</div>
+                            <div><strong>Release Date</strong></div><div>{row.get('Release Date', '-')}</div>
+                            <div><strong>Producers</strong></div><div>{html.escape(row.get('Producers', '-'))}</div>
+                            <div><strong>Songwriters</strong></div><div><span style="text-decoration: underline;">{html.escape(row.get('Songwriters', '-'))}</span></div>
+                            <div><strong>Source / Label</strong></div><div>{html.escape(row.get('Source', '-'))}</div>
+                        </div>
+                    </div>
+                </div>
+                """
+            html_spotify_daily_songs += "</div>"
+        else:
+            html_spotify_daily_songs += "<p style='text-align:center;'>No Ariana Grande songs found in the CSV for today.</p>"
+    else:
+        html_spotify_daily_songs += "<p style='text-align:center;'>Error: The CSV format doesn't match the official Spotify Charts export.</p>"
+else:
+    html_spotify_daily_songs = "<p style='text-align:center; padding: 20px; color:#666;'><em>Create a <b>spotify_daily_songs.csv</b> file to activate this tab!</em></p>"
+
+
+# ==========================================
+# 6. CRÉATION DU FICHIER HTML
 # ==========================================
 html_content = f"""
 <!DOCTYPE html>
@@ -496,9 +588,9 @@ html_content = f"""
         .stat-card h4 {{ margin: 0; color: #555; font-size: 1.1em; }}
         .stat-card p {{ margin: 10px 0 0 0; color: #257059; font-size: 1.8em; font-weight: bold; }}
 
-        /* 💡 NOUVEAU CSS : DESIGN SCRAPBOOK CANVA POUR LES MOIS/ANNÉES */
+        /* DESIGN SCRAPBOOK CANVA POUR LES MOIS/ANNÉES */
         .tracker-container {{ display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }}
-        .tracker-row {{ display: flex; align-items: stretch; width: 100%; gap: 15px; }}
+        .tracker-row {{ display: flex; align-items: stretch; width: 100%; gap: 15px; margin-bottom: 5px; }}
         .tracker-label {{ background-color: #f0f3f1; color: #257059; font-weight: bold; padding: 12px 15px; border: 1px dashed #b0c4b1; transform: skew(-3deg); flex: 0 0 140px; text-align: center; font-size: 1.1em; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; box-shadow: 1px 1px 3px rgba(0,0,0,0.05); white-space: nowrap; }}
         .tracker-value {{ background-color: #222; color: #fff; font-weight: bold; font-size: 1.3em; padding: 12px 20px; flex: 1; text-align: right; letter-spacing: 1px; border-radius: 3px; display: flex; align-items: center; justify-content: flex-end; font-family: 'Courier New', Courier, monospace; }}
         
@@ -506,6 +598,47 @@ html_content = f"""
         .tracker-total-label {{ background-color: #257059; color: #fff; font-weight: bold; font-size: 2em; padding: 10px 20px; transform: skew(-3deg); box-shadow: 2px 2px 0px rgba(0,0,0,0.2); }}
         .tracker-total-value {{ background-color: #f4f7f6; color: #222; font-weight: 900; font-size: 2.8em; padding: 15px 30px; flex: 1; text-align: center; border: 2px solid #257059; box-shadow: 4px 4px 0px rgba(37,112,89,0.3); font-family: 'Segoe UI', sans-serif; letter-spacing: 1px; display: flex; flex-direction: column; justify-content: center; }}
         .total-since {{ font-size: 0.3em; color: #666; font-weight: normal; margin-top: 5px; letter-spacing: 0; align-self: flex-end; }}
+
+        /* TOP 10 GAINERS */
+        .top10-container {{ display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; width: 100%; margin: 0 auto; }}
+        .top10-card {{ flex: 1; min-width: 320px; background-color: #ffffff; border: 2px solid #eaeaea; border-radius: 12px; padding: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.03); }}
+        .top10-title {{ color: #257059; text-align: center; margin-top: 0; margin-bottom: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 1.4em; }}
+        .top10-item {{ display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }}
+        .top10-item:last-child {{ border-bottom: none; }}
+        .top10-rank {{ font-weight: 900; color: #999; width: 30px; font-size: 1.1em; }}
+        .top10-song {{ flex: 1; font-weight: bold; color: #333; margin-right: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+        .top10-streams {{ font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #257059; font-size: 1.1em; background-color: #f4f7f6; padding: 4px 8px; border-radius: 4px; }}
+
+        /* DESIGN SPOTIFY CHARTS CLONE (Pleine largeur) */
+        .sc-container {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #121212; background: white; }}
+        .sc-cards-grid {{ display: flex; flex-direction: column; gap: 25px; margin-top: 20px; width: 100%; }}
+        .sc-ariana-card {{ background-color: white; border: 2px solid #257059; border-radius: 12px; padding: 25px; width: 100%; box-sizing: border-box; box-shadow: 4px 4px 0px rgba(37,112,89,0.2); transition: transform 0.2s; }}
+        .sc-ariana-card:hover {{ transform: translateY(-3px); box-shadow: 6px 6px 0px rgba(37,112,89,0.2); }}
+        
+        .sc-card-main {{ display: flex; gap: 30px; align-items: stretch; flex-wrap: wrap; }}
+        .sc-ariana-img-large {{ width: 180px; height: 180px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.15); background-color: #eaeaea; flex-shrink: 0; }}
+        
+        .sc-card-info {{ display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 300px; }}
+        .sc-ariana-rank {{ font-size: 1.8em; font-weight: 900; color: #222; display: flex; align-items: center; margin-bottom: 5px; }}
+        .sc-ariana-track {{ font-size: 1.6em; font-weight: bold; color: #257059; margin: 0 0 5px 0; line-height: 1.2; }}
+        .sc-ariana-streams {{ font-family: 'Courier New', monospace; font-weight: bold; color: #666; font-size: 1.2em; margin-bottom: 15px; }}
+        
+        .sc-ariana-stats {{ display: flex; justify-content: flex-start; gap: 40px; background-color: #f4f7f6; padding: 15px 25px; border-radius: 8px; border: 1px dashed #b0c4b1; margin-bottom: 10px; flex-wrap: wrap; }}
+        .sc-astat {{ display: flex; flex-direction: column; align-items: flex-start; }}
+        .sc-alab {{ font-size: 0.85em; text-transform: uppercase; color: #888; font-weight: bold; margin-bottom: 5px; letter-spacing: 1px; }}
+        .sc-aval {{ font-size: 1.4em; font-weight: 900; color: #222; }}
+        
+        .sc-trend {{ font-size: 0.45em; padding: 4px 8px; border-radius: 4px; margin-left: 10px; vertical-align: middle; }}
+        .sc-up {{ background-color: #e8f5e9; color: #2e7d32; }}
+        .sc-down {{ background-color: #ffebee; color: #c62828; }}
+        .sc-neutral {{ background-color: #f5f5f5; color: #757575; }}
+        
+        .sc-toggle {{ font-weight: bold; font-size: 1em; color: #555; cursor: pointer; text-align: right; margin-top: auto; align-self: flex-end; }}
+        .sc-toggle:hover {{ text-decoration: underline; color: #257059; }}
+        
+        .sc-details {{ display: none; padding: 25px; border-top: 1px dashed #eaeaea; background-color: #fafafa; font-size: 1em; margin-top: 20px; border-radius: 8px; }}
+        .sc-grid {{ display: grid; grid-template-columns: 200px 1fr; gap: 12px; }}
+        .sc-grid strong {{ color: #555; }}
     </style>
 </head>
 <body>
@@ -560,6 +693,9 @@ html_content = f"""
 
                 <div id="Artist-Periodic" class="subtab-artist-content" style="display:none;">
                     {html_periodic}
+                    <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
+                    <h2 style="color: #257059; text-align: center; margin-bottom: 30px;">🔥 Top Gaining Songs</h2>
+                    {html_top10_container}
                 </div>
             </div>
 
@@ -621,8 +757,30 @@ html_content = f"""
 
             <!-- ONGLET SPOTIFY CHARTS -->
             <div id="SpotifyCharts" class="tabcontent">
-                <h2 style="color: #257059; text-align: center; margin-top: 20px;">🌐 Spotify Charts</h2>
-                <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon... Fetching data from new sources in progress!</em></p>
+                <div class="subtab">
+                    <button class="subtab-sc active" onclick="openSubTab(event, 'SC-DailySongs', 'subtab-sc')" id="defaultSC">Daily Top Songs</button>
+                    <button class="subtab-sc" onclick="openSubTab(event, 'SC-DailyArtists', 'subtab-sc')">Daily Top Artists</button>
+                    <button class="subtab-sc" onclick="openSubTab(event, 'SC-WeeklySongs', 'subtab-sc')">Weekly Top Songs</button>
+                    <button class="subtab-sc" onclick="openSubTab(event, 'SC-WeeklyAlbums', 'subtab-sc')">Weekly Top Albums</button>
+                    <button class="subtab-sc" onclick="openSubTab(event, 'SC-WeeklyArtists', 'subtab-sc')">Weekly Top Artists</button>
+                </div>
+                
+                <div id="SC-DailySongs" class="subtab-sc-content" style="display:block;">
+                    <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🌐 Spotify Daily Top Songs (Global)</h2>
+                    {html_spotify_daily_songs}
+                </div>
+                <div id="SC-DailyArtists" class="subtab-sc-content" style="display:none;">
+                    <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
+                </div>
+                <div id="SC-WeeklySongs" class="subtab-sc-content" style="display:none;">
+                    <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
+                </div>
+                <div id="SC-WeeklyAlbums" class="subtab-sc-content" style="display:none;">
+                    <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
+                </div>
+                <div id="SC-WeeklyArtists" class="subtab-sc-content" style="display:none;">
+                    <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
+                </div>
             </div>
 
         </div>
@@ -665,6 +823,7 @@ html_content = f"""
       if(tabName === 'Artiste' && document.getElementById('defaultArtist')) document.getElementById('defaultArtist').click();
       if(tabName === 'Listeners' && document.getElementById('defaultList')) document.getElementById('defaultList').click();
       if(tabName === 'Songs' && document.getElementById('defaultSongs')) document.getElementById('defaultSongs').click();
+      if(tabName === 'SpotifyCharts' && document.getElementById('defaultSC')) document.getElementById('defaultSC').click();
       
       window.dispatchEvent(new Event('resize')); 
     }}
@@ -703,6 +862,18 @@ html_content = f"""
         document.getElementById('PageDetailChanson').style.display = 'none';
         document.getElementById(vuePrecedenteChanson).style.display = 'block';
         window.dispatchEvent(new Event('resize')); 
+    }}
+
+    // SCRIPT SPOTIFY CHARTS
+    function toggleDetails(idx, btn) {{
+        let div = document.getElementById('sc-detail-' + idx);
+        if (div.style.display === 'block') {{
+            div.style.display = 'none';
+            btn.innerText = 'More ⌄';
+        }} else {{
+            div.style.display = 'block';
+            btn.innerText = 'Less ⌃';
+        }}
     }}
 
     document.addEventListener("DOMContentLoaded", () => {{
@@ -889,4 +1060,4 @@ html_content = f"""
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("✅ Dashboard mis à jour avec le design Canva complet et parfaitement aligné !")
+print("✅ Dashboard mis à jour (variables JSON réparées) !")
