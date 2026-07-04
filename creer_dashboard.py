@@ -43,113 +43,39 @@ def clean_compare(val1, val2):
         return str(val1).strip() == str(val2).strip()
 
 def resolve_track_id(t):
-    # Si on a déjà forcé un Occurrence (ex: Intro___1), on le garde, sinon on met ___0 par défaut
     return t if "___" in t else f"{t}___0"
 
 # ==========================================
-# 0. LE DICTIONNAIRE DES ALBUMS (Masterlist)
+# 0. LE DICTIONNAIRE DES ALBUMS (Avec Nouveaux Noms Kworb)
 # ==========================================
 ALBUM_TRACKS = {
     "Yours Truly": [
-        "Honeymoon Avenue", "Baby I___0", "Right There", "Tattooed Heart", "Lovin' It", "Piano",
-        "Daydreamin'", "The Way", "You'll Never Know", "Almost Is Never Enough", "* Popular Song", "Better Left Unsaid"
+        "Honeymoon Avenue", "Baby I___0", "Right There (feat. Big Sean)", "Tattooed Heart", "Lovin' It", "Piano",
+        "Daydreamin'", "The Way (feat. Mac Miller)", "You'll Never Know", "Almost Is Never Enough (with Nathan Sykes)", "* Popular Song (MIKA & Ariana Grande)", "Better Left Unsaid"
     ],
     "Yours Truly (Tenth Anniversary Edition)": [
-        "Honeymoon Avenue", "Baby I___0", "Right There", "Tattooed Heart", "Lovin' It", "Piano",
-        "Daydreamin'", "The Way", "You'll Never Know", "Almost Is Never Enough", "* Popular Song", "Better Left Unsaid",
+        "Honeymoon Avenue", "Baby I___0", "Right There (feat. Big Sean)", "Tattooed Heart", "Lovin' It", "Piano",
+        "Daydreamin'", "The Way (feat. Mac Miller)", "You'll Never Know", "Almost Is Never Enough (with Nathan Sykes)", "* Popular Song (MIKA & Ariana Grande)", "Better Left Unsaid",
         "Honeymoon Avenue - Live from London", "Daydreamin' - Live from London", "Baby I - Live from London",
         "Tattooed Heart - Live from London", "Right There - Live from London (feat. Big Sean)", "The Way - Live from London (feat. Mac Miller)"
     ],
-    "Christmas Kisses": [
-        "Last Christmas", "Love Is Everything", "Snow In California", "Santa Baby", "Santa Tell Me"
-    ],
-    "My Everything": [
-        "Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby",
-        "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything"
-    ],
-    "My Everything (Deluxe)": [
-        "Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby",
-        "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything",
-        "* Bang Bang", "Only 1", "You Don't Know Me"
-    ],
-    "My Everything (Tenth Anniversary Edition)": [
-        "Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby",
-        "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything",
-        "* Bang Bang", "Only 1", "You Don't Know Me", "Cadillac Song", "Too Close"
-    ],
-    "Christmas & Chill": [
-        "Intro___1", "Wit It This Christmas", "December", "Not Just On Christmas", "True Love", "Winter Things"
-    ],
-    "Dangerous Woman": [
-        "Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy",
-        "Leave Me Lonely", "Everyday", "Bad Decisions", "Thinking Bout You" 
-    ],
-    "Dangerous Woman (Deluxe)": [
-        "Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy",
-        "Leave Me Lonely", "Everyday", "Sometimes", "I Don't Care", "Bad Decisions", "Touch It",
-        "Knew Better / Forever Boy", "Thinking Bout You", "Step On Up", "Jason's Song (Gave It Away)"
-    ],
-    "Dangerous Woman (Tenth Anniversary Edition)": [
-        "Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy",
-        "Leave Me Lonely", "Everyday", "Sometimes", "I Don't Care", "Bad Decisions", "Touch It",
-        "Knew Better / Forever Boy", "Thinking Bout You", "Step On Up", "Jason's Song (Gave It Away)", "Focus",
-        "Knew Better Part Two"
-    ],
-    "Sweetener": [
-        "raindrops (an angel cried)", "blazed (feat. Pharrell Williams)", "the light is coming (feat. Nicki Minaj)",
-        "R.E.M", "God is a woman", "sweetener", "successful", "everytime", "breathin", "no tears left to cry",
-        "borderline (feat. Missy Elliott)", "better off", "goodnight n go", "pete davidson", "get well soon"
-    ],
-    "thank u, next": [
-        "imagine", "needy", "NASA", "bloodline", "fake smile", "bad idea", "make up", "ghostin", "in my head",
-        "7 rings", "thank u, next", "break up with your girlfriend, i'm bored"
-    ],
-    "k bye for now (swt live)": [
-        "raindrops (an angel cried) - live", "god is a woman - live", "bad idea - live",
-        "break up with your girlfriend, i'm bored - live", "r.e.m - live", "be alright - live", "sweetener - live",
-        "successful - live", "side to side - live", "7 rings - live", "love me harder - live", "breathin - live",
-        "needy - live", "fake smile - live", "make up - live", "right there - live", "you'll never know - live",
-        "break your heart right back - live", "nasa - live", "tattooed heart - live", "only 1 - live",
-        "goodnight n go - live", "get well soon - live", "in my head interlude - live", "everyday - live",
-        "the light is coming - live", "into you - live", "my heart belongs to daddy - live", "dangerous woman - live",
-        "break free - live", "no tears left to cry - live", "thank u, next - live"
-    ],
-    "Positions": [
-        "shut up", "34+35", "motive (with Doja Cat)", "just like magic", "off the table (with The Weeknd)",
-        "six thirty", "safety net (feat. Ty Dolla $ign)", "my hair", "nasty", "west side", "love language",
-        "positions", "obvious", "pov"
-    ],
-    "Positions (Deluxe)": [
-        "shut up", "34+35", "motive (with Doja Cat)", "just like magic", "off the table (with The Weeknd)",
-        "six thirty", "safety net (feat. Ty Dolla $ign)", "my hair", "nasty", "west side", "love language",
-        "positions", "obvious", "pov", "someone like u - interlude", "test drive",
-        "34+35 Remix (feat. Doja Cat, Megan Thee Stallion) - Remix", "worst behavior", "main thing"
-    ],
-    "eternal sunshine": [
-        "intro (end of the world)", "bye", "don't wanna break up again", "Saturn Returns Interlude",
-        "eternal sunshine", "supernatural", "true story", "the boy is mine", "yes, and?",
-        "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)"
-    ],
-    "eternal sunshine (deluxe: brighter days ahead)": [
-        "intro (end of the world)", "bye", "don't wanna break up again", "Saturn Returns Interlude",
-        "eternal sunshine", "supernatural", "true story", "the boy is mine", "yes, and?",
-        "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)",
-        "intro (end of the world) - extended", "yes, and? (with Mariah Carey) - Remix", "supernatural (with Troye Sivan) - remix",
-        "the boy is mine (with Brandy, Monica) - Remix", "twilight zone", "warm", "dandelion", "past life", "Hampstead"
-    ],
-    "Petal": [
-        "hate that i made you love me"
-    ],
-    "The Eternal Sunshine Tour Setlist": [
-        "yes, and?", "positions", "dandelion", "the boy is mine", "Saturn Returns Interlude",
-        "eternal sunshine", "just like magic", "thank u, next", "7 rings", "imperfect for you",
-        "warm", "safety net (feat. Ty Dolla $ign)", "One Last Time", "* Rain On Me (with Ariana Grande)", 
-        "Break Free", "twilight zone", "past life", "Dangerous Woman", "Honeymoon Avenue",
-        "Hampstead", "Into You", "hate that i made you love me", "we can't be friends (wait for your love)",
-        "supernatural", "ordinary things (feat. Nonna)"
-    ]
+    "Christmas Kisses": ["Last Christmas", "Love Is Everything", "Snow In California", "Santa Baby", "Santa Tell Me"],
+    "My Everything": ["Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby", "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything"],
+    "My Everything (Deluxe)": ["Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby", "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything", "* Bang Bang", "Only 1", "You Don't Know Me"],
+    "My Everything (Tenth Anniversary Edition)": ["Intro___0", "Problem", "One Last Time___0", "Why Try", "Break Free", "Best Mistake", "Be My Baby", "Break Your Heart Right Back", "Love Me Harder", "Just A Little Bit Of Your Heart", "Hands On Me", "My Everything", "* Bang Bang", "Only 1", "You Don't Know Me", "Cadillac Song", "Too Close"],
+    "Christmas & Chill": ["Intro___1", "Wit It This Christmas", "December", "Not Just On Christmas", "True Love", "Winter Things"],
+    "Dangerous Woman": ["Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy", "Leave Me Lonely", "Everyday", "Bad Decisions", "Thinking Bout You"],
+    "Dangerous Woman (Deluxe)": ["Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy", "Leave Me Lonely", "Everyday", "Sometimes", "I Don't Care", "Bad Decisions", "Touch It", "Knew Better / Forever Boy", "Thinking Bout You", "Step On Up", "Jason's Song (Gave It Away)"],
+    "Dangerous Woman (Tenth Anniversary Edition)": ["Moonlight", "Dangerous Woman", "Be Alright", "Into You", "Side To Side", "Let Me Love You", "Greedy", "Leave Me Lonely", "Everyday", "Sometimes", "I Don't Care", "Bad Decisions", "Touch It", "Knew Better / Forever Boy", "Thinking Bout You", "Step On Up", "Jason's Song (Gave It Away)", "Focus", "Knew Better Part Two"],
+    "Sweetener": ["raindrops (an angel cried)", "blazed (feat. Pharrell Williams)", "the light is coming (feat. Nicki Minaj)", "R.E.M", "God is a woman", "sweetener", "successful", "everytime", "breathin", "no tears left to cry", "borderline (feat. Missy Elliott)", "better off", "goodnight n go", "pete davidson", "get well soon"],
+    "thank u, next": ["imagine", "needy", "NASA", "bloodline", "fake smile", "bad idea", "make up", "ghostin", "in my head", "7 rings", "thank u, next", "break up with your girlfriend, i'm bored"],
+    "k bye for now (swt live)": ["raindrops (an angel cried) - live", "god is a woman - live", "bad idea - live", "break up with your girlfriend, i'm bored - live", "r.e.m - live", "be alright - live", "sweetener - live", "successful - live", "side to side - live", "7 rings - live", "love me harder - live", "breathin - live", "needy - live", "fake smile - live", "make up - live", "right there - live", "you'll never know - live", "break your heart right back - live", "nasa - live", "tattooed heart - live", "only 1 - live", "goodnight n go - live", "get well soon - live", "in my head interlude - live", "everyday - live", "the light is coming - live", "into you - live", "my heart belongs to daddy - live", "dangerous woman - live", "break free - live", "no tears left to cry - live", "thank u, next - live"],
+    "Positions": ["shut up", "34+35", "motive (with Doja Cat)", "just like magic", "off the table (with The Weeknd)", "six thirty", "safety net (feat. Ty Dolla $ign)", "my hair", "nasty", "west side", "love language", "positions", "obvious", "pov"],
+    "Positions (Deluxe)": ["shut up", "34+35", "motive (with Doja Cat)", "just like magic", "off the table (with The Weeknd)", "six thirty", "safety net (feat. Ty Dolla $ign)", "my hair", "nasty", "west side", "love language", "positions", "obvious", "pov", "someone like u - interlude", "test drive", "34+35 Remix (feat. Doja Cat, Megan Thee Stallion) - Remix", "worst behavior", "main thing"],
+    "eternal sunshine": ["intro (end of the world)", "bye", "don't wanna break up again", "Saturn Returns Interlude", "eternal sunshine", "supernatural", "true story", "the boy is mine", "yes, and?", "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)"],
+    "eternal sunshine (deluxe: brighter days ahead)": ["intro (end of the world)", "bye", "don't wanna break up again", "Saturn Returns Interlude", "eternal sunshine", "supernatural", "true story", "the boy is mine", "yes, and?", "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)", "intro (end of the world) - extended", "yes, and? (with Mariah Carey) - Remix", "supernatural (with Troye Sivan) - remix", "the boy is mine (with Brandy, Monica) - Remix", "twilight zone", "warm", "dandelion", "past life", "hampstead"],
+    "Petal": ["hate that i made you love me"]
 }
-
 
 # ==========================================
 # 1. DONNÉES CHANSONS & CALCULS
@@ -164,7 +90,6 @@ dates = sorted(df['Date'].unique(), reverse=True)
 date_jour = dates[0]
 df_jour = df[df['Date'] == date_jour].copy()
 
-# Base pour les évolutions (Hier vs Aujourd'hui)
 if len(dates) >= 2:
     df_evolution = pd.merge(df_jour, df[df['Date'] == dates[1]], on=['Song Title', 'Occurence'], suffixes=('_Aujourdhui', '_Hier'))
     df_evolution['Différence'] = df_evolution['Daily_num_Aujourdhui'] - df_evolution['Daily_num_Hier']
@@ -246,17 +171,14 @@ else:
 
 
 # ==========================================
-# 2. LOGIQUE DES ALBUMS (NOUVEAU)
+# 2. LOGIQUE DES ALBUMS
 # ==========================================
 album_list_stats = []
 albums_js_data = {}
 html_album_tracklists = ""
 
 for i, (nom_album, tracklist_brute) in enumerate(ALBUM_TRACKS.items()):
-    # Convertit les noms du dico en Unique_ID (ex: ajoute ___0 si besoin)
     uids_album = [resolve_track_id(t) for t in tracklist_brute]
-    
-    # 1. Stats pour la page "Liste des Albums"
     alb_jour = df_jour[df_jour['Unique_ID'].isin(uids_album)]
     tot_jour = alb_jour['Streams_num'].sum()
     daily_jour = alb_jour['Daily_num'].sum()
@@ -268,11 +190,8 @@ for i, (nom_album, tracklist_brute) in enumerate(ALBUM_TRACKS.items()):
         daily_veille = alb_veille['Daily_num'].sum()
         
     lien_cliquable = f'<a href="javascript:void(0)" onclick="afficherDetailsAlbum({i})" class="song-link">💿 {html.escape(nom_album)}</a>'
-    album_list_stats.append({
-        'Album': lien_cliquable, 'Total_Num': tot_jour, 'Daily_Num': daily_jour, 'Diff': daily_jour - daily_veille
-    })
+    album_list_stats.append({'Album': lien_cliquable, 'Total_Num': tot_jour, 'Daily_Num': daily_jour, 'Diff': daily_jour - daily_veille})
 
-    # 2. Données JSON pour les 2 graphiques de cet album
     df_alb_hist = df[df['Unique_ID'].isin(uids_album)]
     df_alb_agg = df_alb_hist.groupby('Date').agg({'Streams_num':'sum', 'Daily_num':'sum'}).reset_index().sort_values('Date')
     albums_js_data[i] = {
@@ -282,51 +201,47 @@ for i, (nom_album, tracklist_brute) in enumerate(ALBUM_TRACKS.items()):
         'daily': df_alb_agg['Daily_num'].tolist()
     }
 
-    # 3. Création du code HTML de la Tracklist de l'album
     df_tracklist = df_jour[df_jour['Unique_ID'].isin(uids_album)].copy()
-    
     if not df_tracklist.empty:
-        # On fusionne avec les évolutions si elles existent
         if not df_affichage_evo.empty:
             df_tracklist = pd.merge(df_tracklist, df_affichage_evo[['Unique_ID', 'Différence']], on='Unique_ID', how='left')
         else:
             df_tracklist['Différence'] = '-'
             
-        # On remet l'ordre exact du dictionnaire
         order_dict = {uid: idx for idx, uid in enumerate(uids_album)}
         df_tracklist['Ordre_Album'] = df_tracklist['Unique_ID'].map(order_dict)
         df_tracklist = df_tracklist.sort_values('Ordre_Album')
         
-        # Formatage des nouvelles colonnes
         df_tracklist['Chanson'] = df_tracklist.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
         df_tracklist['Total Streams '] = df_tracklist['Streams_num'].apply(format_en)
         df_tracklist['Daily Streams '] = df_tracklist['Daily_num'].apply(format_en)
         df_tracklist['Évolution'] = df_tracklist['Différence'].apply(format_evo)
         
-        # On sélectionne les colonnes finales
-        df_tracklist = df_tracklist[['Chanson', 'Total Streams ', 'Daily Streams ', 'Évolution']]
-        tbl_html = df_tracklist.to_html(index=False, classes="table-chansons auto-index", escape=False)
+        tbl_html = df_tracklist[['Chanson', 'Total Streams ', 'Daily Streams ', 'Évolution']].to_html(index=False, classes="table-chansons auto-index", escape=False)
     else:
-        # S'il n'y a aucune chanson de l'album dans le Top Kworb aujourd'hui :
-        tbl_html = "<p style='text-align:center; padding: 20px; color: #666;'><em>Aucune chanson de cet album n'est classée dans le Top Kworb aujourd'hui.</em></p>"
+        tbl_html = "<p style='text-align:center; padding: 20px; color: #666;'><em>Aucune chanson de cet album n'est classée aujourd'hui.</em></p>"
     
     html_album_tracklists += f'<div id="tracklist-album-{i}" class="album-tracklist-content" style="display:none;">{tbl_html}</div>\n'
 
-# Formatage de la table globale des Albums
 df_album_list = pd.DataFrame(album_list_stats).sort_values('Total_Num', ascending=False)
 df_album_list['Total Streams '] = df_album_list['Total_Num'].apply(format_en)
 df_album_list['Daily Streams '] = df_album_list['Daily_Num'].apply(format_en)
 df_album_list['Évolution'] = df_album_list['Diff'].apply(format_evo)
 html_tableau_albums_list = df_album_list[['Album', 'Total Streams ', 'Daily Streams ', 'Évolution']].to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
 
+# ==========================================
+# 3. GRAPHIQUES JSON & MARKET SHARE
+# ==========================================
+df_resume_full = pd.read_csv("historique_resume.csv")
+df_res_streams = df_resume_full[df_resume_full['Catégorie'] == 'Streams'].sort_values('Date')
+dates_js = json.dumps(df_res_streams['Date'].tolist())
 
-# ==========================================
-# 3. GRAPHIQUES JSON (Chansons) & MARKET SHARE
-# ==========================================
-df_graph_global = df.groupby('Date').agg({'Streams_num': 'sum', 'Daily_num': 'sum'}).reset_index().sort_values('Date')
-dates_js = json.dumps(df_graph_global['Date'].tolist())
-streams_total_js = json.dumps(df_graph_global['Streams_num'].tolist())
-streams_daily_js = json.dumps(df_graph_global['Daily_num'].tolist())
+val_total = df_res_streams['Total'].astype(str).str.replace(',', '').str.replace(' ', '').str.replace('+', '')
+streams_total_js = json.dumps(pd.to_numeric(val_total, errors='coerce').fillna(0).tolist())
+
+df_res_daily = df_resume_full[df_resume_full['Catégorie'] == 'Daily'].sort_values('Date')
+val_daily = df_res_daily['Total'].astype(str).str.replace(',', '').str.replace(' ', '').str.replace('+', '')
+streams_daily_js = json.dumps(pd.to_numeric(val_daily, errors='coerce').fillna(0).tolist())
 
 top_10 = df_jour.sort_values('Daily_num', ascending=False).head(10)
 others_daily = int(df_jour.sort_values('Daily_num', ascending=False).iloc[10:]['Daily_num'].sum())
@@ -352,8 +267,7 @@ albums_js_data_json = json.dumps(albums_js_data)
 # ==========================================
 # 4. DONNÉES ARTISTE & LISTENERS
 # ==========================================
-df_resume = pd.read_csv("historique_resume.csv")
-df_resume_jour = df_resume[df_resume['Date'] == df_resume['Date'].max()].drop(columns=['Date'])
+df_resume_jour = df_resume_full[df_resume_full['Date'] == df_resume_full['Date'].max()].drop(columns=['Date'])
 for col in df_resume_jour.columns:
     if col != 'Catégorie': df_resume_jour[col] = df_resume_jour[col].apply(format_en)
 html_tableau_resume = df_resume_jour.to_html(index=False, classes="table-chansons")
@@ -418,65 +332,52 @@ html_content = f"""
         .header p {{ margin-top: 10px; font-size: 1.1em; opacity: 0.9; }}
         .container {{ max-width: 1200px; margin: -30px auto 40px auto; padding: 0 20px; }}
         .card {{ background-color: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box; }}
-        
         .song-link {{ color: #257059; font-weight: bold; text-decoration: none; transition: color 0.2s; }}
         .song-link:hover {{ text-decoration: underline; color: #174738; cursor: pointer; }}
-        
         .tab {{ overflow: hidden; border-bottom: 2px solid #eaeaea; margin-bottom: 20px; display: flex; justify-content: center; flex-wrap: wrap; }}
         .tab button {{ background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 14px 24px; transition: 0.3s; font-size: 17px; color: #555; font-weight: bold; border-radius: 10px 10px 0 0; }}
         .tab button:hover {{ background-color: #f1f1f1; }}
         .tab button.active {{ background-color: #257059; color: white; }}
         .tabcontent {{ display: none; animation: fadeEffect 0.5s; }}
-        
         .subtab {{ display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }}
         .subtab button {{ background-color: #e2e8e5; border: none; border-radius: 20px; padding: 8px 20px; font-weight: bold; color: #333; cursor: pointer; transition: 0.3s; }}
         .subtab button:hover {{ background-color: #cdd9d4; }}
         .subtab button.active {{ background-color: #257059; color: white; }}
-        
         .table-chansons {{ width: 100%; border-collapse: collapse; }}
         .table-chansons th {{ background-color: #f8f9fa; color: #555; padding: 15px; text-align: right; border-bottom: 2px solid #eaeaea; }}
         .table-chansons td {{ padding: 12px 15px; text-align: right; border-bottom: 1px solid #eaeaea; }}
         .table-chansons th:first-child, .table-chansons td:first-child {{ text-align: left; }}
         .table-listeners th:nth-child(2), .table-listeners td:nth-child(2) {{ text-align: left; }}
         .table-chansons tr:hover {{ background-color: #f1f1f1; }}
-        
         .auto-index tbody {{ counter-reset: row-num; }}
         .auto-index tbody tr {{ counter-increment: row-num; }}
         .auto-index tbody tr td:first-child::before {{ content: counter(row-num) "."; color: #999; font-weight: bold; display: inline-block; width: 25px; margin-right: 8px; text-align: right; }}
         .auto-index th:first-child {{ padding-left: 48px; }}
-        
         .sortable th {{ cursor: pointer; position: relative; padding-right: 20px; }}
         .sortable th:hover {{ background-color: #e2e8e5; }}
         .sortable th::after {{ content: '↕'; position: absolute; right: 5px; color: #bbb; }}
         .sortable th.asc::after {{ content: '↑'; color: #257059; font-weight: bold; }}
         .sortable th.desc::after {{ content: '↓'; color: #257059; font-weight: bold; }}
-        
         .info-prediction {{ background-color: #e8f4f0; color: #257059; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; font-weight: bold; }}
         .chart-container {{ position: relative; height: 400px; width: 100%; margin-bottom: 50px; padding: 20px; box-sizing: border-box; }}
         .donut-container {{ position: relative; height: 450px; width: 100%; margin: 20px auto; }}
-        
         .btn-retour {{ background-color: #333; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-bottom: 20px; transition: 0.3s; }}
         .btn-retour:hover {{ background-color: #555; }}
-
         .big-listener-btn {{ background-color: #ffffff; border: 2px solid #eaeaea; border-radius: 15px; padding: 20px; margin-top: 15px; }}
         .listeners-clickable {{ transition: all 0.3s ease; cursor: pointer; }}
         .listeners-clickable:hover {{ transform: translateY(-3px); box-shadow: 0 8px 15px rgba(37,112,89,0.15); border-color: #257059; }}
         .listeners-static {{ cursor: default; }}
-        
         .stat-card {{ background-color: #f8f9fa; border: 2px solid #eaeaea; border-radius: 12px; padding: 20px; text-align: center; flex: 1; min-width: 150px; }}
         .stat-card h4 {{ margin: 0; color: #555; font-size: 1.1em; }}
         .stat-card p {{ margin: 10px 0 0 0; color: #257059; font-size: 1.8em; font-weight: bold; }}
     </style>
 </head>
 <body>
-
     <div class="header">
         <h1>🎵 Spotify Stats</h1>
         <p>Ariana Grande - Data from {date_jour}</p>
     </div>
-
     <div class="container">
-        
         <div class="card" id="DashboardPrincipal">
             <div class="tab">
               <button class="tablinks" onclick="openTab(event, 'Artiste')" id="defaultOpen">👩‍🎤 Artist</button>
@@ -488,23 +389,17 @@ html_content = f"""
               <button class="tablinks" onclick="openTab(event, 'Milestones')">🏆 Milestones</button>
               <button class="tablinks" onclick="openTab(event, 'Graphiques')">📉 Charts</button>
             </div>
-
-            <!-- ONGLET ARTISTE -->
             <div id="Artiste" class="tabcontent">
                 <h2 style="color: #257059; margin-top: 0;">Streams Overview</h2>
                 <div style="overflow-x: auto;">{html_tableau_resume}</div>
                 <h2 style="color: #257059; margin-top: 40px;">Monthly Listeners</h2>
                 <p style="color: #666; font-style: italic; margin-top: -10px;">Click to see global ranking and evolution.</p>
-                <div class="big-listener-btn listeners-clickable" onclick="allerVersListeners()">
-                    {html_listeners_grid}
-                </div>
+                <div class="big-listener-btn listeners-clickable" onclick="allerVersListeners()">{html_listeners_grid}</div>
                 <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
                 <h2 style="color: #257059;">Daily Market Share</h2>
                 <p style="color: #666; margin-top: -10px;">Top 10 songs generating the most streams today</p>
                 <div class="donut-container"><canvas id="chartMarketShare"></canvas></div>
             </div>
-
-            <!-- ONGLET LISTENERS -->
             <div id="Listeners" class="tabcontent">
                 <div class="subtab">
                     <button class="subtab-list active" onclick="openSubTab(event, 'List-Overview', 'subtab-list')" id="defaultList">Overview</button>
@@ -515,29 +410,20 @@ html_content = f"""
                     <h2 style="color: #257059;">Monthly Listeners Overview</h2>
                     <div class="big-listener-btn listeners-static">{html_listeners_grid}</div>
                 </div>
-                <div id="List-Evo" class="subtab-list-content" style="display:none;">
-                    <div class="chart-container"><canvas id="chartListenersGlobal"></canvas></div>
-                </div>
-                <div id="List-Rank" class="subtab-list-content" style="display:none;">
-                    <div style="overflow-x: auto;">{html_tableau_classement}</div>
-                </div>
+                <div id="List-Evo" class="subtab-list-content" style="display:none;"><div class="chart-container"><canvas id="chartListenersGlobal"></canvas></div></div>
+                <div id="List-Rank" class="subtab-list-content" style="display:none;"><div style="overflow-x: auto;">{html_tableau_classement}</div></div>
             </div>
-
-            <!-- NOUVEL ONGLET ALBUMS -->
             <div id="Albums" class="tabcontent">
                 <h2 style="color: #257059; margin-top: 0;">Discography</h2>
                 <p style="color: #666; font-style: italic; margin-top: -10px;">Click on an album to see its tracklist and evolution.</p>
                 {html_tableau_albums_list}
             </div>
-
-            <!-- AUTRES ONGLETS -->
             <div id="Global" class="tabcontent">{html_tableau_global}</div>
             <div id="Evolution" class="tabcontent">{html_tableau_evo}</div>
             <div id="Prediction" class="tabcontent">
               <div class="info-prediction">Projection based on {jours_restants} remaining days in the year.</div>
               {html_tableau_pred}
             </div>
-            
             <div id="Milestones" class="tabcontent">
                 <div class="subtab">
                     <button class="subtab-ms active" onclick="openSubTab(event, 'MS-Targets', 'subtab-ms')" id="defaultMS">Next 100M Targets</button>
@@ -552,7 +438,6 @@ html_content = f"""
                     {html_tableau_overtake}
                 </div>
             </div>
-
             <div id="Graphiques" class="tabcontent">
                 <h2 style="text-align:center; color:#257059;">Global Cumulated Streams</h2>
                 <div class="chart-container"><canvas id="chartTotalGlobal"></canvas></div>
@@ -567,8 +452,6 @@ html_content = f"""
                 <div class="chart-container"><canvas id="chartComparator"></canvas></div>
             </div>
         </div>
-
-        <!-- ZONE DÉTAIL CHANSON -->
         <div class="card" id="PageDetailChanson" style="display: none;">
             <button class="btn-retour" onclick="fermerPopups()">⬅ Back to Dashboard</button>
             <h2 id="TitreChansonDetail" style="text-align: center; color: #257059; font-size: 2em; margin-top: 0;">Titre</h2>
@@ -577,26 +460,17 @@ html_content = f"""
                 <button class="subtab-song active" onclick="openSubTab(event, 'Song-Daily-Brut', 'subtab-song')" id="defaultSong">Daily Streams</button>
                 <button class="subtab-song" onclick="openSubTab(event, 'Song-Daily-Lisse', 'subtab-song')">7-Day Rolling Average</button>
             </div>
-            <div id="Song-Daily-Brut" class="subtab-song-content" style="display:block;">
-                <div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily"></canvas></div>
-            </div>
-            <div id="Song-Daily-Lisse" class="subtab-song-content" style="display:none;">
-                <div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily7d"></canvas></div>
-            </div>
+            <div id="Song-Daily-Brut" class="subtab-song-content" style="display:block;"><div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily"></canvas></div></div>
+            <div id="Song-Daily-Lisse" class="subtab-song-content" style="display:none;"><div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily7d"></canvas></div></div>
         </div>
-
-        <!-- ZONE DÉTAIL ALBUM (NOUVEAU) -->
         <div class="card" id="PageDetailAlbum" style="display: none;">
             <button class="btn-retour" onclick="fermerPopups()">⬅ Back to Dashboard</button>
             <h2 id="TitreAlbumDetail" style="text-align: center; color: #257059; font-size: 2em; margin-top: 0;">Album</h2>
             <div class="chart-container" style="height: 350px;"><canvas id="chartAlbumTotal"></canvas></div>
             <div class="chart-container" style="height: 350px;"><canvas id="chartAlbumDaily"></canvas></div>
             <h3 style="color: #257059; margin-top: 40px; text-align: center;">💿 Tracklist Performance</h3>
-            <div id="album-tracklists-container">
-                {html_album_tracklists}
-            </div>
+            <div id="album-tracklists-container">{html_album_tracklists}</div>
         </div>
-
     </div>
 
     <script>
@@ -620,6 +494,7 @@ html_content = f"""
         for (let i = 0; i < tabs.length; i++) {{
             if (tabs[i].innerText.includes("Listeners")) {{ tabs[i].click(); break; }}
         }}
+        document.getElementById("defaultList").click();
         window.scrollTo(0, 0);
     }}
 
@@ -643,8 +518,9 @@ html_content = f"""
         document.querySelectorAll('.table-listeners tbody tr').forEach(row => {{
             if (row.cells[1] && row.cells[1].innerText.includes('Ariana Grande')) {{
                 row.style.backgroundColor = '#d1ede3';
+                row.style.fontWeight = 'bold';
                 row.style.borderLeft = '5px solid #257059';
-                row.cells[1].innerText = 'Ariana Grande';
+                row.cells[1].innerText = '⭐ Ariana Grande';
             }}
         }});
     }});
@@ -673,7 +549,30 @@ html_content = f"""
         }});
     }});
 
+    // 💡 LA FONCTION MAGIQUE DE RECADRAGE POUR COUPER LE VIDE À GAUCHE
     const datesGlobal = {dates_js};
+    
+    function getCroppedTimeline(songDates, songVals, globalDates) {{
+        let premiereDate = songDates[0]; 
+        let startIndex = globalDates.indexOf(premiereDate);
+        if (startIndex === -1) startIndex = 0;
+        
+        let croppedDates = globalDates.slice(startIndex);
+        let alignedData = croppedDates.map(gDate => {{
+            let idx = songDates.indexOf(gDate);
+            return idx !== -1 ? songVals[idx] : null; 
+        }});
+        
+        return {{ labels: croppedDates, data: alignedData }};
+    }}
+
+    function getAlignedData(songDates, songVals, globalDates) {{
+        return globalDates.map(gDate => {{
+            let idx = songDates.indexOf(gDate);
+            return idx !== -1 ? songVals[idx] : null;
+        }});
+    }}
+
     new Chart(document.getElementById('chartTotalGlobal').getContext('2d'), {{
         type: 'line', data: {{ labels: datesGlobal, datasets:[{{ label: 'Total Streams', data: {streams_total_js}, borderColor: '#257059', backgroundColor: 'rgba(37, 112, 89, 0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
         options: {{ responsive: true, maintainAspectRatio: false }}
@@ -701,12 +600,11 @@ html_content = f"""
     songKeys.forEach(k => {{ sel1.add(new Option(historique_chansons[k].titre, k)); sel2.add(new Option(historique_chansons[k].titre, k)); }});
     if(songKeys.length > 1) sel2.selectedIndex = 1;
 
-    function getAlignedData(songDates, songVals, globalDates) {{ return globalDates.map(gDate => {{ let idx = songDates.indexOf(gDate); return idx !== -1 ? songVals[idx] : null; }}); }}
-
     function updateComparator() {{
         let d1 = historique_chansons[sel1.value];
         let d2 = historique_chansons[sel2.value];
         if (graphCompare) graphCompare.destroy();
+        
         graphCompare = new Chart(document.getElementById('chartComparator').getContext('2d'), {{
             type: 'line',
             data: {{
@@ -734,22 +632,25 @@ html_content = f"""
         if (graphDaily) graphDaily.destroy();
         if (graphDaily7d) graphDaily7d.destroy();
 
+        let tlTotal = getCroppedTimeline(donnees.dates, donnees.streams, datesGlobal);
+        let tlDaily = getCroppedTimeline(donnees.dates, donnees.daily, datesGlobal);
+        let tl7d = getCroppedTimeline(donnees.dates, donnees.daily_7d, datesGlobal);
+
         graphTotal = new Chart(document.getElementById('chartChansonTotal').getContext('2d'), {{
-            type: 'line', data: {{ labels: donnees.dates, datasets:[{{ label: 'Total Streams', data: donnees.streams, borderColor: '#257059', backgroundColor: 'rgba(37,112,89,0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
+            type: 'line', data: {{ labels: tlTotal.labels, datasets:[{{ label: 'Total Streams', data: tlTotal.data, borderColor: '#257059', backgroundColor: 'rgba(37,112,89,0.2)', borderWidth: 3, fill: true, tension: 0.3, spanGaps: true }}] }},
             options: {{ responsive: true, maintainAspectRatio: false }}
         }});
         graphDaily = new Chart(document.getElementById('chartChansonDaily').getContext('2d'), {{
-            type: 'line', data: {{ labels: donnees.dates, datasets:[{{ label: 'Daily Streams', data: donnees.daily, borderColor: '#d9534f', backgroundColor: 'rgba(217,83,79,0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
+            type: 'line', data: {{ labels: tlDaily.labels, datasets:[{{ label: 'Daily Streams', data: tlDaily.data, borderColor: '#d9534f', backgroundColor: 'rgba(217,83,79,0.2)', borderWidth: 3, fill: true, tension: 0.3, spanGaps: true }}] }},
             options: {{ responsive: true, maintainAspectRatio: false }}
         }});
         graphDaily7d = new Chart(document.getElementById('chartChansonDaily7d').getContext('2d'), {{
-            type: 'line', data: {{ labels: donnees.dates, datasets:[{{ label: 'Moyenne 7 Jours (Lissé)', data: donnees.daily_7d, borderColor: '#2980b9', backgroundColor: 'rgba(41,128,185,0.2)', borderWidth: 3, fill: true, tension: 0.4 }}] }},
+            type: 'line', data: {{ labels: tl7d.labels, datasets:[{{ label: 'Moyenne 7 Jours (Lissé)', data: tl7d.data, borderColor: '#2980b9', backgroundColor: 'rgba(41,128,185,0.2)', borderWidth: 3, fill: true, tension: 0.4, spanGaps: true }}] }},
             options: {{ responsive: true, maintainAspectRatio: false }}
         }});
         window.scrollTo(0, 0);
     }}
 
-    // --- LOGIQUE ALBUMS (NOUVEAU) ---
     const albums_js_data = {albums_js_data_json};
     let graphAlbumTotal = null, graphAlbumDaily = null;
 
@@ -758,7 +659,6 @@ html_content = f"""
         document.getElementById('PageDetailChanson').style.display = 'none';
         document.getElementById('PageDetailAlbum').style.display = 'block';
         
-        // Cache toutes les tracklists, et affiche la bonne
         document.querySelectorAll('.album-tracklist-content').forEach(el => el.style.display = 'none');
         document.getElementById('tracklist-album-' + albumIndex).style.display = 'block';
         
@@ -768,12 +668,15 @@ html_content = f"""
         if (graphAlbumTotal) graphAlbumTotal.destroy();
         if (graphAlbumDaily) graphAlbumDaily.destroy();
 
+        let tlTotal = getCroppedTimeline(donnees.dates, donnees.streams, datesGlobal);
+        let tlDaily = getCroppedTimeline(donnees.dates, donnees.daily, datesGlobal);
+
         graphAlbumTotal = new Chart(document.getElementById('chartAlbumTotal').getContext('2d'), {{
-            type: 'line', data: {{ labels: donnees.dates, datasets:[{{ label: 'Total Streams (Album)', data: donnees.streams, borderColor: '#8e44ad', backgroundColor: 'rgba(142,68,173,0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
+            type: 'line', data: {{ labels: tlTotal.labels, datasets:[{{ label: 'Total Streams (Album)', data: tlTotal.data, borderColor: '#8e44ad', backgroundColor: 'rgba(142,68,173,0.2)', borderWidth: 3, fill: true, tension: 0.3, spanGaps: true }}] }},
             options: {{ responsive: true, maintainAspectRatio: false }}
         }});
         graphAlbumDaily = new Chart(document.getElementById('chartAlbumDaily').getContext('2d'), {{
-            type: 'line', data: {{ labels: donnees.dates, datasets:[{{ label: 'Daily Streams (Album)', data: donnees.daily, borderColor: '#e67e22', backgroundColor: 'rgba(230,126,34,0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
+            type: 'line', data: {{ labels: tlDaily.labels, datasets:[{{ label: 'Daily Streams (Album)', data: tlDaily.data, borderColor: '#e67e22', backgroundColor: 'rgba(230,126,34,0.2)', borderWidth: 3, fill: true, tension: 0.3, spanGaps: true }}] }},
             options: {{ responsive: true, maintainAspectRatio: false }}
         }});
         window.scrollTo(0, 0);
@@ -791,4 +694,4 @@ html_content = f"""
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("✅ Dashboard mis à jour : L'onglet Albums complet a été intégré !")
+print("✅ Dashboard mis à jour avec recadrage automatique (complet) !")
