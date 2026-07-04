@@ -46,7 +46,7 @@ def resolve_track_id(t):
     return t if "___" in t else f"{t}___0"
 
 # ==========================================
-# 0. LE DICTIONNAIRE DES ALBUMS (Avec Nouveaux Noms Kworb)
+# 0. LE DICTIONNAIRE DES ALBUMS
 # ==========================================
 ALBUM_TRACKS = {
     "Yours Truly": [
@@ -168,7 +168,6 @@ if not df_over.empty:
     html_tableau_overtake = df_over[['Chanson Rapide 🚀', 'Chanson Rattrapée 🎯', 'Écart Actuel ', 'Vitesse de rattrapage ', 'Jours Estimés ']].to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
 else:
     html_tableau_overtake = "<p style='text-align:center; padding:20px;'>Aucun dépassement en cours détecté.</p>"
-
 
 # ==========================================
 # 2. LOGIQUE DES ALBUMS
@@ -315,7 +314,7 @@ html_listeners_grid = f"""
 """
 
 # ==========================================
-# 5. CRÉATION DU FICHIER HTML
+# 5. CRÉATION DU FICHIER HTML (AGENCEMENT MIS À JOUR)
 # ==========================================
 html_content = f"""
 <!DOCTYPE html>
@@ -332,74 +331,113 @@ html_content = f"""
         .header p {{ margin-top: 10px; font-size: 1.1em; opacity: 0.9; }}
         .container {{ max-width: 1200px; margin: -30px auto 40px auto; padding: 0 20px; }}
         .card {{ background-color: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); width: 100%; box-sizing: border-box; }}
+        
         .song-link {{ color: #257059; font-weight: bold; text-decoration: none; transition: color 0.2s; }}
         .song-link:hover {{ text-decoration: underline; color: #174738; cursor: pointer; }}
+        
         .tab {{ overflow: hidden; border-bottom: 2px solid #eaeaea; margin-bottom: 20px; display: flex; justify-content: center; flex-wrap: wrap; }}
         .tab button {{ background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 14px 24px; transition: 0.3s; font-size: 17px; color: #555; font-weight: bold; border-radius: 10px 10px 0 0; }}
         .tab button:hover {{ background-color: #f1f1f1; }}
         .tab button.active {{ background-color: #257059; color: white; }}
         .tabcontent {{ display: none; animation: fadeEffect 0.5s; }}
+        
         .subtab {{ display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }}
         .subtab button {{ background-color: #e2e8e5; border: none; border-radius: 20px; padding: 8px 20px; font-weight: bold; color: #333; cursor: pointer; transition: 0.3s; }}
         .subtab button:hover {{ background-color: #cdd9d4; }}
         .subtab button.active {{ background-color: #257059; color: white; }}
+        
         .table-chansons {{ width: 100%; border-collapse: collapse; }}
         .table-chansons th {{ background-color: #f8f9fa; color: #555; padding: 15px; text-align: right; border-bottom: 2px solid #eaeaea; }}
         .table-chansons td {{ padding: 12px 15px; text-align: right; border-bottom: 1px solid #eaeaea; }}
         .table-chansons th:first-child, .table-chansons td:first-child {{ text-align: left; }}
         .table-listeners th:nth-child(2), .table-listeners td:nth-child(2) {{ text-align: left; }}
         .table-chansons tr:hover {{ background-color: #f1f1f1; }}
+        
         .auto-index tbody {{ counter-reset: row-num; }}
         .auto-index tbody tr {{ counter-increment: row-num; }}
         .auto-index tbody tr td:first-child::before {{ content: counter(row-num) "."; color: #999; font-weight: bold; display: inline-block; width: 25px; margin-right: 8px; text-align: right; }}
         .auto-index th:first-child {{ padding-left: 48px; }}
+        
         .sortable th {{ cursor: pointer; position: relative; padding-right: 20px; }}
         .sortable th:hover {{ background-color: #e2e8e5; }}
         .sortable th::after {{ content: '↕'; position: absolute; right: 5px; color: #bbb; }}
         .sortable th.asc::after {{ content: '↑'; color: #257059; font-weight: bold; }}
         .sortable th.desc::after {{ content: '↓'; color: #257059; font-weight: bold; }}
+        
         .info-prediction {{ background-color: #e8f4f0; color: #257059; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; font-weight: bold; }}
         .chart-container {{ position: relative; height: 400px; width: 100%; margin-bottom: 50px; padding: 20px; box-sizing: border-box; }}
         .donut-container {{ position: relative; height: 450px; width: 100%; margin: 20px auto; }}
+        
         .btn-retour {{ background-color: #333; color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; margin-bottom: 20px; transition: 0.3s; }}
         .btn-retour:hover {{ background-color: #555; }}
+
         .big-listener-btn {{ background-color: #ffffff; border: 2px solid #eaeaea; border-radius: 15px; padding: 20px; margin-top: 15px; }}
         .listeners-clickable {{ transition: all 0.3s ease; cursor: pointer; }}
         .listeners-clickable:hover {{ transform: translateY(-3px); box-shadow: 0 8px 15px rgba(37,112,89,0.15); border-color: #257059; }}
         .listeners-static {{ cursor: default; }}
+        
         .stat-card {{ background-color: #f8f9fa; border: 2px solid #eaeaea; border-radius: 12px; padding: 20px; text-align: center; flex: 1; min-width: 150px; }}
         .stat-card h4 {{ margin: 0; color: #555; font-size: 1.1em; }}
         .stat-card p {{ margin: 10px 0 0 0; color: #257059; font-size: 1.8em; font-weight: bold; }}
     </style>
 </head>
 <body>
+
     <div class="header">
         <h1>🎵 Spotify Stats</h1>
         <p>Ariana Grande - Data from {date_jour}</p>
     </div>
+
     <div class="container">
+        
         <div class="card" id="DashboardPrincipal">
+            
+            <!-- NOUVEL AGENCEMENT DES ONGLETS -->
             <div class="tab">
               <button class="tablinks" onclick="openTab(event, 'Artiste')" id="defaultOpen">👩‍🎤 Artist</button>
               <button class="tablinks" onclick="openTab(event, 'Listeners')">🌍 Listeners</button>
               <button class="tablinks" onclick="openTab(event, 'Albums')">💿 Albums</button>
-              <button class="tablinks" onclick="openTab(event, 'Global')">📊 Songs</button>
-              <button class="tablinks" onclick="openTab(event, 'Evolution')">📈 Evolution</button>
-              <button class="tablinks" onclick="openTab(event, 'Prediction')">🔮 Prediction</button>
-              <button class="tablinks" onclick="openTab(event, 'Milestones')">🏆 Milestones</button>
-              <button class="tablinks" onclick="openTab(event, 'Graphiques')">📉 Charts</button>
+              <button class="tablinks" onclick="openTab(event, 'Songs')">📊 Songs</button>
+              <button class="tablinks" onclick="openTab(event, 'SpotifyCharts')">🌐 Spotify Charts</button>
             </div>
+
+            <!-- ONGLET 1 : ARTISTE (Avec ses sous-onglets) -->
             <div id="Artiste" class="tabcontent">
-                <h2 style="color: #257059; margin-top: 0;">Streams Overview</h2>
-                <div style="overflow-x: auto;">{html_tableau_resume}</div>
-                <h2 style="color: #257059; margin-top: 40px;">Monthly Listeners</h2>
-                <p style="color: #666; font-style: italic; margin-top: -10px;">Click to see global ranking and evolution.</p>
-                <div class="big-listener-btn listeners-clickable" onclick="allerVersListeners()">{html_listeners_grid}</div>
-                <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
-                <h2 style="color: #257059;">Daily Market Share</h2>
-                <p style="color: #666; margin-top: -10px;">Top 10 songs generating the most streams today</p>
-                <div class="donut-container"><canvas id="chartMarketShare"></canvas></div>
+                <div class="subtab">
+                    <button class="subtab-artist active" onclick="openSubTab(event, 'Artist-Overview', 'subtab-artist')" id="defaultArtist">Overview</button>
+                    <button class="subtab-artist" onclick="openSubTab(event, 'Artist-Charts', 'subtab-artist')">Charts</button>
+                    <button class="subtab-artist" onclick="openSubTab(event, 'Artist-Periodic', 'subtab-artist')">Monthly/Yearly Streams</button>
+                </div>
+                
+                <div id="Artist-Overview" class="subtab-artist-content" style="display:block;">
+                    <h2 style="color: #257059; margin-top: 0;">Streams Overview</h2>
+                    <div style="overflow-x: auto;">{html_tableau_resume}</div>
+                    <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
+                    <h2 style="color: #257059;">Daily Market Share</h2>
+                    <p style="color: #666; margin-top: -10px;">Top 10 songs generating the most streams today</p>
+                    <div class="donut-container"><canvas id="chartMarketShare"></canvas></div>
+                </div>
+                
+                <div id="Artist-Charts" class="subtab-artist-content" style="display:none;">
+                    <h2 style="text-align:center; color:#257059;">Global Cumulated Streams</h2>
+                    <div class="chart-container"><canvas id="chartTotalGlobal"></canvas></div>
+                    <div class="chart-container"><canvas id="chartDailyGlobal"></canvas></div>
+                    <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
+                    <h2 style="text-align:center; color:#257059;">Song Comparator</h2>
+                    <div style="display:flex; justify-content:center; gap: 20px; margin-bottom: 20px;">
+                        <select id="songSelect1" onchange="updateComparator()" style="padding: 10px; border-radius: 8px; font-size: 16px; border: 2px solid #257059; max-width: 300px;"></select>
+                        <span style="font-size: 20px; align-self: center; font-weight: bold; color: #555;">VS</span>
+                        <select id="songSelect2" onchange="updateComparator()" style="padding: 10px; border-radius: 8px; font-size: 16px; border: 2px solid #257059; max-width: 300px;"></select>
+                    </div>
+                    <div class="chart-container"><canvas id="chartComparator"></canvas></div>
+                </div>
+
+                <div id="Artist-Periodic" class="subtab-artist-content" style="display:none;">
+                    <p style='text-align:center; padding: 50px; color:#666;'><em>Work in progress...</em></p>
+                </div>
             </div>
+
+            <!-- ONGLET 2 : LISTENERS -->
             <div id="Listeners" class="tabcontent">
                 <div class="subtab">
                     <button class="subtab-list active" onclick="openSubTab(event, 'List-Overview', 'subtab-list')" id="defaultList">Overview</button>
@@ -410,48 +448,60 @@ html_content = f"""
                     <h2 style="color: #257059;">Monthly Listeners Overview</h2>
                     <div class="big-listener-btn listeners-static">{html_listeners_grid}</div>
                 </div>
-                <div id="List-Evo" class="subtab-list-content" style="display:none;"><div class="chart-container"><canvas id="chartListenersGlobal"></canvas></div></div>
-                <div id="List-Rank" class="subtab-list-content" style="display:none;"><div style="overflow-x: auto;">{html_tableau_classement}</div></div>
+                <div id="List-Evo" class="subtab-list-content" style="display:none;">
+                    <div class="chart-container"><canvas id="chartListenersGlobal"></canvas></div>
+                </div>
+                <div id="List-Rank" class="subtab-list-content" style="display:none;">
+                    <div style="overflow-x: auto;">{html_tableau_classement}</div>
+                </div>
             </div>
+
+            <!-- ONGLET 3 : ALBUMS -->
             <div id="Albums" class="tabcontent">
                 <h2 style="color: #257059; margin-top: 0;">Discography</h2>
                 <p style="color: #666; font-style: italic; margin-top: -10px;">Click on an album to see its tracklist and evolution.</p>
                 {html_tableau_albums_list}
             </div>
-            <div id="Global" class="tabcontent">{html_tableau_global}</div>
-            <div id="Evolution" class="tabcontent">{html_tableau_evo}</div>
-            <div id="Prediction" class="tabcontent">
-              <div class="info-prediction">Projection based on {jours_restants} remaining days in the year.</div>
-              {html_tableau_pred}
-            </div>
-            <div id="Milestones" class="tabcontent">
+
+            <!-- ONGLET 4 : SONGS (Avec ses sous-onglets) -->
+            <div id="Songs" class="tabcontent">
                 <div class="subtab">
-                    <button class="subtab-ms active" onclick="openSubTab(event, 'MS-Targets', 'subtab-ms')" id="defaultMS">Next 100M Targets</button>
-                    <button class="subtab-ms" onclick="openSubTab(event, 'MS-Overtakes', 'subtab-ms')">Time to Overtake</button>
+                    <button class="subtab-songs active" onclick="openSubTab(event, 'Songs-Overview', 'subtab-songs')" id="defaultSongs">Overview</button>
+                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Evolution', 'subtab-songs')">Evolution</button>
+                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Predictions', 'subtab-songs')">Predictions</button>
+                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Targets', 'subtab-songs')">Next 100M Targets</button>
+                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Overtakes', 'subtab-songs')">Time to Overtake</button>
                 </div>
-                <div id="MS-Targets" class="subtab-ms-content" style="display:block;">
+                
+                <div id="Songs-Overview" class="subtab-songs-content" style="display:block;">
+                    {html_tableau_global}
+                </div>
+                <div id="Songs-Evolution" class="subtab-songs-content" style="display:none;">
+                    {html_tableau_evo}
+                </div>
+                <div id="Songs-Predictions" class="subtab-songs-content" style="display:none;">
+                    <div class="info-prediction">Projection based on {jours_restants} remaining days in the year.</div>
+                    {html_tableau_pred}
+                </div>
+                <div id="Songs-Targets" class="subtab-songs-content" style="display:none;">
                     <div class="info-prediction">Estimated days to reach the next 100M threshold based on current Daily Streams.</div>
                     {html_tableau_ms}
                 </div>
-                <div id="MS-Overtakes" class="subtab-ms-content" style="display:none;">
+                <div id="Songs-Overtakes" class="subtab-songs-content" style="display:none;">
                     <div class="info-prediction">Songs catching up to others in Total Streams!</div>
                     {html_tableau_overtake}
                 </div>
             </div>
-            <div id="Graphiques" class="tabcontent">
-                <h2 style="text-align:center; color:#257059;">Global Cumulated Streams</h2>
-                <div class="chart-container"><canvas id="chartTotalGlobal"></canvas></div>
-                <div class="chart-container"><canvas id="chartDailyGlobal"></canvas></div>
-                <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
-                <h2 style="text-align:center; color:#257059;">⚔️ Song Comparator</h2>
-                <div style="display:flex; justify-content:center; gap: 20px; margin-bottom: 20px;">
-                    <select id="songSelect1" onchange="updateComparator()" style="padding: 10px; border-radius: 8px; font-size: 16px; border: 2px solid #257059; max-width: 300px;"></select>
-                    <span style="font-size: 20px; align-self: center; font-weight: bold; color: #555;">VS</span>
-                    <select id="songSelect2" onchange="updateComparator()" style="padding: 10px; border-radius: 8px; font-size: 16px; border: 2px solid #257059; max-width: 300px;"></select>
-                </div>
-                <div class="chart-container"><canvas id="chartComparator"></canvas></div>
+
+            <!-- ONGLET 5 : SPOTIFY CHARTS -->
+            <div id="SpotifyCharts" class="tabcontent">
+                <h2 style="color: #257059; text-align: center; margin-top: 20px;">🌐 Spotify Charts</h2>
+                <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon... Fetching data from new sources in progress!</em></p>
             </div>
+
         </div>
+
+        <!-- ZONE DÉTAIL CHANSON -->
         <div class="card" id="PageDetailChanson" style="display: none;">
             <button class="btn-retour" onclick="retourDeChanson()">⬅ Back</button>
             <h2 id="TitreChansonDetail" style="text-align: center; color: #257059; font-size: 2em; margin-top: 0;">Titre</h2>
@@ -463,6 +513,8 @@ html_content = f"""
             <div id="Song-Daily-Brut" class="subtab-song-content" style="display:block;"><div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily"></canvas></div></div>
             <div id="Song-Daily-Lisse" class="subtab-song-content" style="display:none;"><div class="chart-container" style="height: 350px;"><canvas id="chartChansonDaily7d"></canvas></div></div>
         </div>
+
+        <!-- ZONE DÉTAIL ALBUM -->
         <div class="card" id="PageDetailAlbum" style="display: none;">
             <button class="btn-retour" onclick="fermerPopups()">⬅ Back to Dashboard</button>
             <h2 id="TitreAlbumDetail" style="text-align: center; color: #257059; font-size: 2em; margin-top: 0;">Album</h2>
@@ -471,6 +523,7 @@ html_content = f"""
             <h3 style="color: #257059; margin-top: 40px; text-align: center;">💿 Tracklist Performance</h3>
             <div id="album-tracklists-container">{html_album_tracklists}</div>
         </div>
+
     </div>
 
     <script>
@@ -483,20 +536,14 @@ html_content = f"""
       document.getElementById(tabName).style.display = "block";
       if(evt) evt.currentTarget.className += " active";
       
+      // Auto-reset des sous-onglets lors de la navigation
+      if(tabName === 'Artiste' && document.getElementById('defaultArtist')) document.getElementById('defaultArtist').click();
       if(tabName === 'Listeners' && document.getElementById('defaultList')) document.getElementById('defaultList').click();
-      if(tabName === 'Milestones' && document.getElementById('defaultMS')) document.getElementById('defaultMS').click();
+      if(tabName === 'Songs' && document.getElementById('defaultSongs')) document.getElementById('defaultSongs').click();
+      
       window.dispatchEvent(new Event('resize')); 
     }}
     document.getElementById("defaultOpen").click();
-
-    function allerVersListeners() {{
-        let tabs = document.getElementsByClassName("tablinks");
-        for (let i = 0; i < tabs.length; i++) {{
-            if (tabs[i].innerText.includes("Listeners")) {{ tabs[i].click(); break; }}
-        }}
-        document.getElementById("defaultList").click();
-        window.scrollTo(0, 0);
-    }}
 
     function openSubTab(evt, tabName, groupClass) {{
       var i, tabcontent, tablinks;
@@ -506,12 +553,23 @@ html_content = f"""
       for (i = 0; i < tablinks.length; i++) {{ tablinks[i].className = tablinks[i].className.replace(" active", ""); }}
       document.getElementById(tabName).style.display = "block";
       if(evt) evt.currentTarget.className += " active";
+      
+      // Très important pour que les graphiques se redimensionnent correctement
+      window.dispatchEvent(new Event('resize'));
     }}
 
     function fermerPopups() {{
         document.getElementById('PageDetailChanson').style.display = 'none';
         document.getElementById('PageDetailAlbum').style.display = 'none';
         document.getElementById('DashboardPrincipal').style.display = 'block';
+    }}
+
+    let vuePrecedenteChanson = 'DashboardPrincipal'; 
+
+    function retourDeChanson() {{
+        document.getElementById('PageDetailChanson').style.display = 'none';
+        document.getElementById(vuePrecedenteChanson).style.display = 'block';
+        window.dispatchEvent(new Event('resize')); 
     }}
 
     document.addEventListener("DOMContentLoaded", () => {{
@@ -549,7 +607,6 @@ html_content = f"""
         }});
     }});
 
-    // 💡 LA FONCTION MAGIQUE DE RECADRAGE POUR COUPER LE VIDE À GAUCHE
     const datesGlobal = {dates_js};
     
     function getCroppedTimeline(songDates, songVals, globalDates) {{
@@ -562,7 +619,6 @@ html_content = f"""
             let idx = songDates.indexOf(gDate);
             return idx !== -1 ? songVals[idx] : null; 
         }});
-        
         return {{ labels: croppedDates, data: alignedData }};
     }}
 
@@ -604,7 +660,6 @@ html_content = f"""
         let d1 = historique_chansons[sel1.value];
         let d2 = historique_chansons[sel2.value];
         if (graphCompare) graphCompare.destroy();
-        
         graphCompare = new Chart(document.getElementById('chartComparator').getContext('2d'), {{
             type: 'line',
             data: {{
@@ -619,25 +674,13 @@ html_content = f"""
     }}
     updateComparator();
 
-    // --- NOUVEAU : Le Post-it de mémoire ! ---
-    let vuePrecedenteChanson = 'DashboardPrincipal'; 
-
-    function retourDeChanson() {{
-        document.getElementById('PageDetailChanson').style.display = 'none';
-        document.getElementById(vuePrecedenteChanson).style.display = 'block';
-        window.dispatchEvent(new Event('resize')); 
-    }}
-
-    // --- L'ANCIENNE FONCTION MISE À JOUR ---
     function afficherDetailsChanson(uid) {{
-        // 1. L'ordinateur note d'où tu viens sur son Post-it
         if (document.getElementById('PageDetailAlbum').style.display === 'block') {{
             vuePrecedenteChanson = 'PageDetailAlbum';
         }} else {{
             vuePrecedenteChanson = 'DashboardPrincipal';
         }}
 
-        // 2. Il cache tout et affiche la chanson
         document.getElementById('DashboardPrincipal').style.display = 'none';
         document.getElementById('PageDetailAlbum').style.display = 'none';
         document.getElementById('PageDetailChanson').style.display = 'block';
@@ -646,7 +689,6 @@ html_content = f"""
         const donnees = historique_chansons[uid];
         document.getElementById('TitreChansonDetail').innerText = "📈 " + donnees.titre;
 
-        // 3. Il génère tes 3 graphiques (comme avant)
         if (graphTotal) graphTotal.destroy();
         if (graphDaily) graphDaily.destroy();
         if (graphDaily7d) graphDaily7d.destroy();
@@ -713,4 +755,4 @@ html_content = f"""
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("✅ Dashboard mis à jour avec recadrage automatique (complet) !")
+print("✅ Dashboard mis à jour avec le nouveau design de sous-onglets !")
