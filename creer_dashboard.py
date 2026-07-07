@@ -467,7 +467,7 @@ if os.path.exists("spotify_daily_songs.csv"):
                                 <div class="sc-astat"><span class="sc-alab">Peak</span><span class="sc-aval">{row.get('Peak', '-')}</span></div>
                                 <div class="sc-astat"><span class="sc-alab">Prev</span><span class="sc-aval">{row.get('Prev', '-')}</span></div>
                                 <div class="sc-astat"><span class="sc-alab">Streak</span><span class="sc-aval">{row.get('Streak', '-')} days</span></div>
-                                <div class="sc-astat"><span class="sc-alab">1st Entry Pos</span><span class="sc-aval">#{row.get('First entry position', '-')}</span></div>
+                                <div class="sc-astat"><span class="sc-alab">Total days on chart</span><span class="sc-aval">{row.get('Total days on chart', '-')} days</span></div>
                             </div>
                             
                             <div class="sc-toggle" onclick="toggleDetails('daily_{idx}', this)">More ⌄</div>
