@@ -642,26 +642,34 @@ html_content = f"""
         .top10-song {{ flex: 1; font-weight: bold; color: #333; margin-right: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
         .top10-streams {{ font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #257059; font-size: 1.1em; background-color: #f4f7f6; padding: 4px 8px; border-radius: 4px; }}
 
+        /* DESIGN SPOTIFY CHARTS CLONE (Pleine largeur) */
         .sc-container {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #121212; background: white; }}
         .sc-cards-grid {{ display: flex; flex-direction: column; gap: 25px; margin-top: 20px; width: 100%; }}
         .sc-ariana-card {{ background-color: white; border: 2px solid #257059; border-radius: 12px; padding: 25px; width: 100%; box-sizing: border-box; box-shadow: 4px 4px 0px rgba(37,112,89,0.2); transition: transform 0.2s; }}
         .sc-ariana-card:hover {{ transform: translateY(-3px); box-shadow: 6px 6px 0px rgba(37,112,89,0.2); }}
-        .sc-card-main {{ display: flex; gap: 30px; align-items: stretch; flex-wrap: wrap; }}
-        .sc-ariana-img-large {{ width: 180px; height: 180px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.15); background-color: #eaeaea; flex-shrink: 0; }}
-        .sc-card-info {{ display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 300px; }}
+        
+        .sc-card-main {{ display: flex; gap: 30px; align-items: stretch; }}
+        .sc-ariana-img-large {{ width: 230px; height: 230px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.15); background-color: #eaeaea; flex-shrink: 0; }}
+        .sc-card-info {{ display: flex; flex-direction: column; justify-content: space-between; flex: 1; min-width: 0; padding: 5px 0; }}
         .sc-ariana-rank {{ font-size: 1.8em; font-weight: 900; color: #222; display: flex; align-items: center; margin-bottom: 5px; }}
         .sc-ariana-track {{ font-size: 1.6em; font-weight: bold; color: #257059; margin: 0 0 5px 0; line-height: 1.2; }}
         .sc-ariana-streams {{ font-family: 'Courier New', monospace; font-weight: bold; color: #666; font-size: 1.2em; margin-bottom: 15px; }}
-        .sc-ariana-stats {{ display: flex; justify-content: flex-start; gap: 40px; background-color: #f4f7f6; padding: 15px 25px; border-radius: 8px; border: 1px dashed #b0c4b1; margin-bottom: 10px; flex-wrap: wrap; }}
-        .sc-astat {{ display: flex; flex-direction: column; align-items: flex-start; }}
+        
+        /* Boîte grise avec stats réparties à équidistance */
+        .sc-ariana-stats {{ display: flex; justify-content: space-between; gap: 10px; background-color: #f4f7f6; padding: 15px 25px; border-radius: 8px; border: 1px dashed #b0c4b1; margin-bottom: 15px; flex-wrap: wrap; }}
+        
+        .sc-astat {{ display: flex; flex-direction: column; align-items: center; flex: 1; text-align: center; }}
         .sc-alab {{ font-size: 0.85em; text-transform: uppercase; color: #888; font-weight: bold; margin-bottom: 5px; letter-spacing: 1px; }}
         .sc-aval {{ font-size: 1.4em; font-weight: 900; color: #222; }}
+        
         .sc-trend {{ font-size: 0.45em; padding: 4px 8px; border-radius: 4px; margin-left: 10px; vertical-align: middle; }}
         .sc-up {{ background-color: #e8f5e9; color: #2e7d32; }}
         .sc-down {{ background-color: #ffebee; color: #c62828; }}
         .sc-neutral {{ background-color: #f5f5f5; color: #757575; }}
-        .sc-toggle {{ font-weight: bold; font-size: 1em; color: #555; cursor: pointer; text-align: right; margin-top: auto; align-self: flex-end; }}
+        
+        .sc-toggle {{ font-weight: bold; font-size: 1em; color: #555; cursor: pointer; text-align: right; margin-top: 10px; align-self: flex-end; }}
         .sc-toggle:hover {{ text-decoration: underline; color: #257059; }}
+        
         .sc-details {{ display: none; padding: 25px; border-top: 1px dashed #eaeaea; background-color: #fafafa; font-size: 1em; margin-top: 20px; border-radius: 8px; }}
         .sc-grid {{ display: grid; grid-template-columns: 200px 1fr; gap: 12px; }}
         .sc-grid strong {{ color: #555; }}
