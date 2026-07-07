@@ -220,30 +220,36 @@ df_album_list['Évolution'] = df_album_list['Diff'].apply(format_evo)
 html_tableau_albums_list = df_album_list[['Album', 'Total Streams ', 'Daily Streams ', 'Évolution']].to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
 
 # ==========================================
-# 3. GRAPHIQUES JSON & MARKET SHARE & PERIODIC STREAMS
+# 3. GRAPHIQUES JSON & MARKET SHARE & PERIODIC
 # ==========================================
 df_resume_full = pd.read_csv("historique_resume.csv")
-
-# Données des flux totaux
 df_res_streams = df_resume_full[df_resume_full['Catégorie'] == 'Streams'].copy()
 df_res_streams['Date_obj'] = pd.to_datetime(df_res_streams['Date'])
 df_res_streams = df_res_streams.sort_values('Date_obj')
-dates_js = json.dumps(df_res_streams['Date'].tolist())
 
-# Données journalières
-df_res_daily = df_resume_full[df_resume_full['Catégorie'] == 'Daily'].copy()
-df_res_daily['Date_obj'] = pd.to_datetime(df_res_daily['Date'])
-df_res_daily = df_res_daily.sort_values('Date_obj')
+# 💡 LA MAGIE : On crée un calendrier COMPLET sans aucun trou (du 9 mai à aujourd'hui)
+first_date_overall = df_res_streams['Date_obj'].min()
+last_date_overall = df_res_streams['Date_obj'].max()
+all_dates = pd.date_range(start=first_date_overall, end=last_date_overall, freq='D')
+calendrier_global = all_dates.strftime('%Y-%m-%d').tolist()
+dates_js = json.dumps(calendrier_global)
 
+# On aligne les valeurs globales (Total) sur ce calendrier
 val_total = df_res_streams['Total'].astype(str).str.replace(',', '').str.replace(' ', '').str.replace('+', '')
 df_res_streams['Total_int'] = pd.to_numeric(val_total, errors='coerce').fillna(0).astype(int)
-streams_total_js = json.dumps(df_res_streams['Total_int'].tolist())
+dict_total = dict(zip(df_res_streams['Date'], df_res_streams['Total_int']))
+aligned_total = [dict_total.get(d, None) for d in calendrier_global] # 'None' va boucher le trou dans le graph JS
+streams_total_js = json.dumps(aligned_total)
 
+# On aligne les valeurs globales (Daily) sur ce calendrier
+df_res_daily = df_resume_full[df_resume_full['Catégorie'] == 'Daily'].copy()
+df_res_daily['Date_obj'] = pd.to_datetime(df_res_daily['Date'])
 val_daily = df_res_daily['Total'].astype(str).str.replace(',', '').str.replace(' ', '').str.replace('+', '')
 df_res_daily['Total_int'] = pd.to_numeric(val_daily, errors='coerce').fillna(0).astype(int)
-streams_daily_js = json.dumps(df_res_daily['Total_int'].tolist())
-
 dict_daily = dict(zip(df_res_daily['Date'], df_res_daily['Total_int']))
+aligned_daily = [dict_daily.get(d, None) for d in calendrier_global] # 'None' va boucher le trou dans le graph JS
+streams_daily_js = json.dumps(aligned_daily)
+
 
 # --- CALCUL DES MOIS ET ANNÉES (L'ALGORITHME DE SOUSTRACTION 12 MOIS) ---
 first_date_overall = df_res_streams['Date_obj'].min()
@@ -283,42 +289,31 @@ for y in reversed(years_in_data):
                 first_daily = dict_daily.get(first_date_str, 0)
                 gain = last_row['Total_int'] - first_row['Total_int'] + first_daily
                 is_partial = True 
-            val = f"+{format_en(gain)}" if isinstance(gain, int) else val
+            
+            # CORRECTION ICI : On enlève la condition qui forçait le No Data
+            val = f"+{format_en(gain)}"
+            
         month_data[m] = {'val': val, 'partial': is_partial}
 
-    # Colonne 1 (Jan-Juin)
     html_periodic += "<div style='display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 300px;'>"
     for m in range(1, 7):
         val = month_data[m]['val']
         partial_str = " <span style='font-size: 0.7em; color:#888; font-weight:normal;'>(partial)</span>" if month_data[m]['partial'] else ""
-        html_periodic += f"""
-        <div class="tracker-row">
-            <div class="tracker-label">{months_names[m]}{partial_str}</div>
-            <div class="tracker-value">{val}</div>
-        </div>
-        """
+        html_periodic += f"""<div class="tracker-row"><div class="tracker-label">{months_names[m]}{partial_str}</div><div class="tracker-value">{val}</div></div>"""
     html_periodic += "</div>"
     
-    # Colonne 2 (Juil-Dec)
     html_periodic += "<div style='display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 300px;'>"
     for m in range(7, 13):
         val = month_data[m]['val']
         partial_str = " <span style='font-size: 0.7em; color:#888; font-weight:normal;'>(partial)</span>" if month_data[m]['partial'] else ""
-        html_periodic += f"""
-        <div class="tracker-row">
-            <div class="tracker-label">{months_names[m]}{partial_str}</div>
-            <div class="tracker-value">{val}</div>
-        </div>
-        """
-    html_periodic += "</div>"
-    html_periodic += "</div>" 
+        html_periodic += f"""<div class="tracker-row"><div class="tracker-label">{months_names[m]}{partial_str}</div><div class="tracker-value">{val}</div></div>"""
+    html_periodic += "</div></div>" 
     
-    # YEAR TOTAL
     df_y = df_res_streams[df_res_streams['Date_obj'].dt.year == y]
     first_row_y = df_y.iloc[0]
     last_row_y = df_y.iloc[-1]
-    
     df_prev_y = df_res_streams[df_res_streams['Date_obj'].dt.year == y - 1]
+    
     if not df_prev_y.empty:
         last_day_prev_y = df_prev_y.iloc[-1]
         gain_y = last_row_y['Total_int'] - last_day_prev_y['Total_int']
@@ -335,27 +330,39 @@ for y in reversed(years_in_data):
             <div class="tracker-total-label">total</div>
             <div style="font-weight: 900; font-size: 1.5em; margin-top: 5px; color: #222;">{y}</div>
         </div>
-        <div class="tracker-total-value">
-            +{format_en(gain_y)}
-            {since_str}
-        </div>
+        <div class="tracker-total-value">+{format_en(gain_y)}{since_str}</div>
     </div>
     """
 html_periodic += "</div>"
 
-# --- TOP 10 GAINERS ---
 current_year = date_obj_jour.year
 current_month = date_obj_jour.month
 current_month_name = months_names[current_month]
 
-df_year_songs = df[df['Date_obj'].dt.year == current_year].sort_values('Date_obj')
+# TOP 10 DE L'ANNÉE (Comparaison avec la fin de l'année précédente)
+df_year_songs = df[df['Date_obj'].dt.year == current_year]
 top10_y_html = ""
 if not df_year_songs.empty:
+    df_prev_year_songs = df[df['Date_obj'].dt.year == current_year - 1]
+    dict_prev_year = {}
+    if not df_prev_year_songs.empty:
+        last_day_prev_y = df_prev_year_songs['Date'].max()
+        df_last_prev_y = df_prev_year_songs[df_prev_year_songs['Date'] == last_day_prev_y]
+        dict_prev_year = dict(zip(df_last_prev_y['Unique_ID'], df_last_prev_y['Streams_num']))
+
     gains_y = []
     for uid, grp in df_year_songs.groupby('Unique_ID'):
-        gain = grp['Streams_num'].iloc[-1] - grp['Streams_num'].iloc[0] + grp['Daily_num'].iloc[0]
+        grp = grp.sort_values('Date_obj')
+        total_actuel = grp['Streams_num'].iloc[-1]
         titre = grp['Song Title'].iloc[0]
+        
+        if uid in dict_prev_year:
+            gain = total_actuel - dict_prev_year[uid]
+        else:
+            gain = total_actuel - grp['Streams_num'].iloc[0] + grp['Daily_num'].iloc[0]
+            
         gains_y.append({'uid': uid, 'titre': titre, 'gain': gain})
+        
     df_top_y = pd.DataFrame(gains_y).sort_values('gain', ascending=False).head(10)
     top10_y_html += f"<div class='top10-card'><h3 class='top10-title'>🏆 Top 10 - Year {current_year}</h3>"
     for idx, row in enumerate(df_top_y.to_dict('records')):
@@ -363,14 +370,35 @@ if not df_year_songs.empty:
         top10_y_html += f"<div class='top10-item'><span class='top10-rank'>{idx+1}.</span><span class='top10-song'>{titre_lien}</span><span class='top10-streams'>+{format_en(row['gain'])}</span></div>"
     top10_y_html += "</div>"
 
-df_month_songs = df[(df['Date_obj'].dt.year == current_year) & (df['Date_obj'].dt.month == current_month)].sort_values('Date_obj')
+# TOP 10 DU MOIS (Comparaison avec la fin du mois précédent)
+df_month_songs = df[(df['Date_obj'].dt.year == current_year) & (df['Date_obj'].dt.month == current_month)]
 top10_m_html = ""
 if not df_month_songs.empty:
+    if current_month == 1:
+        prev_m_year, prev_m_month = current_year - 1, 12
+    else:
+        prev_m_year, prev_m_month = current_year, current_month - 1
+        
+    df_prev_month_songs = df[(df['Date_obj'].dt.year == prev_m_year) & (df['Date_obj'].dt.month == prev_m_month)]
+    dict_prev_month = {}
+    if not df_prev_month_songs.empty:
+        last_day_prev = df_prev_month_songs['Date'].max()
+        df_last_prev = df_prev_month_songs[df_prev_month_songs['Date'] == last_day_prev]
+        dict_prev_month = dict(zip(df_last_prev['Unique_ID'], df_last_prev['Streams_num']))
+
     gains_m = []
     for uid, grp in df_month_songs.groupby('Unique_ID'):
-        gain = grp['Streams_num'].iloc[-1] - grp['Streams_num'].iloc[0] + grp['Daily_num'].iloc[0]
+        grp = grp.sort_values('Date_obj')
+        total_actuel = grp['Streams_num'].iloc[-1]
         titre = grp['Song Title'].iloc[0]
+        
+        if uid in dict_prev_month:
+            gain = total_actuel - dict_prev_month[uid]
+        else:
+            gain = total_actuel - grp['Streams_num'].iloc[0] + grp['Daily_num'].iloc[0]
+            
         gains_m.append({'uid': uid, 'titre': titre, 'gain': gain})
+        
     df_top_m = pd.DataFrame(gains_m).sort_values('gain', ascending=False).head(10)
     top10_m_html += f"<div class='top10-card'><h3 class='top10-title'>📅 Top 10 - {current_month_name} {current_year}</h3>"
     for idx, row in enumerate(df_top_m.to_dict('records')):
@@ -380,8 +408,6 @@ if not df_month_songs.empty:
 
 html_top10_container = f"<div class='top10-container'>{top10_m_html}{top10_y_html}</div>"
 
-
-# --- MARKET SHARE (DONUT) & JSON DES CHANSONS ---
 top_10 = df_jour.sort_values('Daily_num', ascending=False).head(10)
 others_daily = int(df_jour.sort_values('Daily_num', ascending=False).iloc[10:]['Daily_num'].sum())
 market_labels = top_10['Song Title'].tolist() + ["Others"]
@@ -389,7 +415,6 @@ market_data = [int(x) for x in top_10['Daily_num'].tolist()] + [others_daily]
 market_labels_js = json.dumps(market_labels)
 market_data_js = json.dumps(market_data)
 
-# 💡 ATTENTION : C'EST CE BLOC QUI AVAIT DISPARU ET CAUSAIT L'ERREUR 'historique_chansons_js is not defined' !
 historique_chansons = {}
 for uid in df['Unique_ID'].unique():
     df_chanson = df[df['Unique_ID'] == uid].sort_values('Date')
@@ -406,58 +431,7 @@ albums_js_data_json = json.dumps(albums_js_data)
 
 
 # ==========================================
-# 4. DONNÉES ARTISTE & LISTENERS
-# ==========================================
-df_resume_jour = df_resume_full[df_resume_full['Date'] == df_resume_full['Date'].max()].drop(columns=['Date', 'Catégorie', 'YearMonth', 'Year', 'Total_int', 'Date_obj'], errors='ignore')
-for col in df_resume_jour.columns:
-    df_resume_jour[col] = df_resume_jour[col].apply(format_en)
-df_resume_jour.insert(0, 'Catégorie', ['Streams', 'Daily', 'Tracks'][:len(df_resume_jour)])
-html_tableau_resume = df_resume_jour.to_html(index=False, classes="table-chansons")
-
-df_list_full = pd.read_csv("historique_ariana_listeners.csv")
-df_list_jour = df_list_full[df_list_full['Date'] == df_list_full['Date'].max()].iloc[0]
-
-listeners_actuel = format_en(df_list_jour['Listeners'])
-listeners_peak_rank = str(df_list_jour['Peak'])
-listeners_peak_val = format_en(df_list_jour['PkListeners'])
-listeners_current_rank = str(df_list_jour['#']) if '#' in df_list_jour else "?"
-try:
-    daily_int = int(float(str(df_list_jour['Daily +/-']).replace(',', '').replace(' ', '').replace('+', '')))
-    listeners_daily_str = f"+{format_en(daily_int)}" if daily_int > 0 else format_en(daily_int)
-except:
-    listeners_daily_str = str(df_list_jour['Daily +/-'])
-
-df_classement = pd.read_csv("classement_listeners_jour.csv")
-if all(col in df_classement.columns for col in ['Listeners', 'PkListeners']):
-    df_classement['PkListeners'] = df_classement.apply(lambda r: f"<b>{format_en(r['PkListeners'])}</b>" if clean_compare(r['Listeners'], r['PkListeners']) else format_en(r['PkListeners']), axis=1)
-if all(col in df_classement.columns for col in ['#', 'Peak']):
-    df_classement['Peak'] = df_classement.apply(lambda r: f"<b>{format_en(r['Peak'])}</b>" if clean_compare(r['#'], r['Peak']) else format_en(r['Peak']), axis=1)
-
-if 'Listeners' in df_classement.columns: df_classement['Listeners'] = df_classement['Listeners'].apply(format_en)
-if 'Daily +/-' in df_classement.columns: df_classement['Daily +/-'] = df_classement['Daily +/-'].apply(format_evo)
-html_tableau_classement = df_classement.to_html(index=False, classes="table-chansons table-listeners sortable", escape=False)
-
-df_list_full_sorted = df_list_full.sort_values('Date')
-df_list_full_sorted['Listeners_clean'] = df_list_full_sorted['Listeners'].astype(str).str.replace(',', '').str.replace(' ', '')
-list_dates_js = json.dumps(df_list_full_sorted['Date'].tolist())
-list_vals_js = json.dumps(pd.to_numeric(df_list_full_sorted['Listeners_clean'], errors='coerce').fillna(0).tolist())
-
-html_listeners_grid = f"""
-<div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
-    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-        <div class="stat-card"><h4>Current Listeners</h4><p>{listeners_actuel}</p></div>
-        <div class="stat-card"><h4>Daily Trend</h4><p>{listeners_daily_str}</p></div>
-        <div class="stat-card"><h4>Current Rank</h4><p>#{listeners_current_rank}</p></div>
-    </div>
-    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-        <div class="stat-card"><h4>Peak Listeners</h4><p>{listeners_peak_val}</p></div>
-        <div class="stat-card"><h4>Peak Rank</h4><p>#{listeners_peak_rank}</p></div>
-    </div>
-</div>
-"""
-
-# ==========================================
-# 5. SPOTIFY CHARTS MANUEL
+# 4. SPOTIFY CHARTS MANUEL
 # ==========================================
 html_spotify_daily_songs = ""
 if os.path.exists("spotify_daily_songs.csv"):
@@ -474,7 +448,6 @@ if os.path.exists("spotify_daily_songs.csv"):
                 elif '↓' in trend or '-' in trend: trend_class = "sc-down"
                 
                 track_name = row.get('Track', '-')
-                # On cherche la première date d'entrée dans notre historique perso Kworb
                 df_chanson_hist = df[df['Song Title'] == track_name]
                 first_entry = "-"
                 if not df_chanson_hist.empty:
@@ -519,6 +492,68 @@ if os.path.exists("spotify_daily_songs.csv"):
         html_spotify_daily_songs += "<p style='text-align:center;'>Error: The CSV format doesn't match the official Spotify Charts export.</p>"
 else:
     html_spotify_daily_songs = "<p style='text-align:center; padding: 20px; color:#666;'><em>Create a <b>spotify_daily_songs.csv</b> file to activate this tab!</em></p>"
+
+
+# ==========================================
+# 5. DONNÉES ARTISTE & LISTENERS
+# ==========================================
+df_resume_jour = df_resume_full[df_resume_full['Date'] == df_resume_full['Date'].max()].drop(columns=['Date', 'Catégorie', 'YearMonth', 'Year', 'Total_int', 'Date_obj'], errors='ignore')
+for col in df_resume_jour.columns:
+    df_resume_jour[col] = df_resume_jour[col].apply(format_en)
+df_resume_jour.insert(0, 'Catégorie', ['Streams', 'Daily', 'Tracks'][:len(df_resume_jour)])
+html_tableau_resume = df_resume_jour.to_html(index=False, classes="table-chansons")
+
+df_list_full = pd.read_csv("historique_ariana_listeners.csv")
+df_list_full_sorted = df_list_full.sort_values('Date').copy()
+df_list_full_sorted['Date_obj'] = pd.to_datetime(df_list_full_sorted['Date'])
+df_list_full_sorted['Listeners_clean'] = df_list_full_sorted['Listeners'].astype(str).str.replace(',', '').str.replace(' ', '')
+df_list_full_sorted['Listeners_int'] = pd.to_numeric(df_list_full_sorted['Listeners_clean'], errors='coerce').fillna(0).astype(int)
+
+# 💡 NOUVEAU : Calendrier continu des Listeners
+min_l_date = df_list_full_sorted['Date_obj'].min()
+max_l_date = df_list_full_sorted['Date_obj'].max()
+cal_list = pd.date_range(start=min_l_date, end=max_l_date, freq='D').strftime('%Y-%m-%d').tolist()
+
+dict_listeners = dict(zip(df_list_full_sorted['Date'], df_list_full_sorted['Listeners_int']))
+aligned_listeners = [dict_listeners.get(d, None) for d in cal_list] # Remplit avec des 'null' les trous !
+
+list_dates_js = json.dumps(cal_list)
+list_vals_js = json.dumps(aligned_listeners)
+
+df_list_jour = df_list_full[df_list_full['Date'] == df_list_full['Date'].max()].iloc[0]
+listeners_actuel = format_en(df_list_jour['Listeners'])
+listeners_peak_rank = str(df_list_jour['Peak'])
+listeners_peak_val = format_en(df_list_jour['PkListeners'])
+listeners_current_rank = str(df_list_jour['#']) if '#' in df_list_jour else "?"
+try:
+    daily_int = int(float(str(df_list_jour['Daily +/-']).replace(',', '').replace(' ', '').replace('+', '')))
+    listeners_daily_str = f"+{format_en(daily_int)}" if daily_int > 0 else format_en(daily_int)
+except:
+    listeners_daily_str = str(df_list_jour['Daily +/-'])
+
+df_classement = pd.read_csv("classement_listeners_jour.csv")
+if all(col in df_classement.columns for col in ['Listeners', 'PkListeners']):
+    df_classement['PkListeners'] = df_classement.apply(lambda r: f"<b>{format_en(r['PkListeners'])}</b>" if clean_compare(r['Listeners'], r['PkListeners']) else format_en(r['PkListeners']), axis=1)
+if all(col in df_classement.columns for col in ['#', 'Peak']):
+    df_classement['Peak'] = df_classement.apply(lambda r: f"<b>{format_en(r['Peak'])}</b>" if clean_compare(r['#'], r['Peak']) else format_en(r['Peak']), axis=1)
+
+if 'Listeners' in df_classement.columns: df_classement['Listeners'] = df_classement['Listeners'].apply(format_en)
+if 'Daily +/-' in df_classement.columns: df_classement['Daily +/-'] = df_classement['Daily +/-'].apply(format_evo)
+html_tableau_classement = df_classement.to_html(index=False, classes="table-chansons table-listeners sortable", escape=False)
+
+html_listeners_grid = f"""
+<div style="display: flex; flex-direction: column; gap: 20px; width: 100%;">
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div class="stat-card"><h4>Current Listeners</h4><p>{listeners_actuel}</p></div>
+        <div class="stat-card"><h4>Daily Trend</h4><p>{listeners_daily_str}</p></div>
+        <div class="stat-card"><h4>Current Rank</h4><p>#{listeners_current_rank}</p></div>
+    </div>
+    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+        <div class="stat-card"><h4>Peak Listeners</h4><p>{listeners_peak_val}</p></div>
+        <div class="stat-card"><h4>Peak Rank</h4><p>#{listeners_peak_rank}</p></div>
+    </div>
+</div>
+"""
 
 
 # ==========================================
@@ -588,7 +623,6 @@ html_content = f"""
         .stat-card h4 {{ margin: 0; color: #555; font-size: 1.1em; }}
         .stat-card p {{ margin: 10px 0 0 0; color: #257059; font-size: 1.8em; font-weight: bold; }}
 
-        /* DESIGN SCRAPBOOK CANVA POUR LES MOIS/ANNÉES */
         .tracker-container {{ display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 10px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }}
         .tracker-row {{ display: flex; align-items: stretch; width: 100%; gap: 15px; margin-bottom: 5px; }}
         .tracker-label {{ background-color: #f0f3f1; color: #257059; font-weight: bold; padding: 12px 15px; border: 1px dashed #b0c4b1; transform: skew(-3deg); flex: 0 0 140px; text-align: center; font-size: 1.1em; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 4px; box-shadow: 1px 1px 3px rgba(0,0,0,0.05); white-space: nowrap; }}
@@ -599,7 +633,6 @@ html_content = f"""
         .tracker-total-value {{ background-color: #f4f7f6; color: #222; font-weight: 900; font-size: 2.8em; padding: 15px 30px; flex: 1; text-align: center; border: 2px solid #257059; box-shadow: 4px 4px 0px rgba(37,112,89,0.3); font-family: 'Segoe UI', sans-serif; letter-spacing: 1px; display: flex; flex-direction: column; justify-content: center; }}
         .total-since {{ font-size: 0.3em; color: #666; font-weight: normal; margin-top: 5px; letter-spacing: 0; align-self: flex-end; }}
 
-        /* TOP 10 GAINERS */
         .top10-container {{ display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; width: 100%; margin: 0 auto; }}
         .top10-card {{ flex: 1; min-width: 320px; background-color: #ffffff; border: 2px solid #eaeaea; border-radius: 12px; padding: 25px; box-shadow: 0 8px 15px rgba(0,0,0,0.03); }}
         .top10-title {{ color: #257059; text-align: center; margin-top: 0; margin-bottom: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 1.4em; }}
@@ -609,33 +642,26 @@ html_content = f"""
         .top10-song {{ flex: 1; font-weight: bold; color: #333; margin-right: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
         .top10-streams {{ font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #257059; font-size: 1.1em; background-color: #f4f7f6; padding: 4px 8px; border-radius: 4px; }}
 
-        /* DESIGN SPOTIFY CHARTS CLONE (Pleine largeur) */
         .sc-container {{ font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #121212; background: white; }}
         .sc-cards-grid {{ display: flex; flex-direction: column; gap: 25px; margin-top: 20px; width: 100%; }}
         .sc-ariana-card {{ background-color: white; border: 2px solid #257059; border-radius: 12px; padding: 25px; width: 100%; box-sizing: border-box; box-shadow: 4px 4px 0px rgba(37,112,89,0.2); transition: transform 0.2s; }}
         .sc-ariana-card:hover {{ transform: translateY(-3px); box-shadow: 6px 6px 0px rgba(37,112,89,0.2); }}
-        
         .sc-card-main {{ display: flex; gap: 30px; align-items: stretch; flex-wrap: wrap; }}
         .sc-ariana-img-large {{ width: 180px; height: 180px; border-radius: 12px; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.15); background-color: #eaeaea; flex-shrink: 0; }}
-        
         .sc-card-info {{ display: flex; flex-direction: column; justify-content: center; flex: 1; min-width: 300px; }}
         .sc-ariana-rank {{ font-size: 1.8em; font-weight: 900; color: #222; display: flex; align-items: center; margin-bottom: 5px; }}
         .sc-ariana-track {{ font-size: 1.6em; font-weight: bold; color: #257059; margin: 0 0 5px 0; line-height: 1.2; }}
         .sc-ariana-streams {{ font-family: 'Courier New', monospace; font-weight: bold; color: #666; font-size: 1.2em; margin-bottom: 15px; }}
-        
         .sc-ariana-stats {{ display: flex; justify-content: flex-start; gap: 40px; background-color: #f4f7f6; padding: 15px 25px; border-radius: 8px; border: 1px dashed #b0c4b1; margin-bottom: 10px; flex-wrap: wrap; }}
         .sc-astat {{ display: flex; flex-direction: column; align-items: flex-start; }}
         .sc-alab {{ font-size: 0.85em; text-transform: uppercase; color: #888; font-weight: bold; margin-bottom: 5px; letter-spacing: 1px; }}
         .sc-aval {{ font-size: 1.4em; font-weight: 900; color: #222; }}
-        
         .sc-trend {{ font-size: 0.45em; padding: 4px 8px; border-radius: 4px; margin-left: 10px; vertical-align: middle; }}
         .sc-up {{ background-color: #e8f5e9; color: #2e7d32; }}
         .sc-down {{ background-color: #ffebee; color: #c62828; }}
         .sc-neutral {{ background-color: #f5f5f5; color: #757575; }}
-        
         .sc-toggle {{ font-weight: bold; font-size: 1em; color: #555; cursor: pointer; text-align: right; margin-top: auto; align-self: flex-end; }}
         .sc-toggle:hover {{ text-decoration: underline; color: #257059; }}
-        
         .sc-details {{ display: none; padding: 25px; border-top: 1px dashed #eaeaea; background-color: #fafafa; font-size: 1em; margin-top: 20px; border-radius: 8px; }}
         .sc-grid {{ display: grid; grid-template-columns: 200px 1fr; gap: 12px; }}
         .sc-grid strong {{ color: #555; }}
@@ -864,7 +890,6 @@ html_content = f"""
         window.dispatchEvent(new Event('resize')); 
     }}
 
-    // SCRIPT SPOTIFY CHARTS
     function toggleDetails(idx, btn) {{
         let div = document.getElementById('sc-detail-' + idx);
         if (div.style.display === 'block') {{
@@ -934,11 +959,11 @@ html_content = f"""
     }}
 
     new Chart(document.getElementById('chartTotalGlobal').getContext('2d'), {{
-        type: 'line', data: {{ labels: datesGlobal, datasets:[{{ label: 'Total Streams', data: {streams_total_js}, borderColor: '#257059', backgroundColor: 'rgba(37, 112, 89, 0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
+        type: 'line', data: {{ labels: datesGlobal, datasets:[{{ label: 'Total Streams', data: {streams_total_js}, borderColor: '#257059', backgroundColor: 'rgba(37, 112, 89, 0.2)', borderWidth: 3, fill: true, tension: 0.3, spanGaps: true }}] }},
         options: {{ responsive: true, maintainAspectRatio: false }}
     }});
     new Chart(document.getElementById('chartDailyGlobal').getContext('2d'), {{
-        type: 'line', data: {{ labels: datesGlobal, datasets:[{{ label: 'Daily Streams', data: {streams_daily_js}, borderColor: '#d9534f', backgroundColor: 'rgba(217, 83, 79, 0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
+        type: 'line', data: {{ labels: datesGlobal, datasets:[{{ label: 'Daily Streams', data: {streams_daily_js}, borderColor: '#d9534f', backgroundColor: 'rgba(217, 83, 79, 0.2)', borderWidth: 3, fill: true, tension: 0.3, spanGaps: true }}] }},
         options: {{ responsive: true, maintainAspectRatio: false }}
     }});
 
@@ -1049,7 +1074,7 @@ html_content = f"""
     }}
 
     new Chart(document.getElementById('chartListenersGlobal').getContext('2d'), {{
-        type: 'line', data: {{ labels: {list_dates_js}, datasets:[{{ label: "Monthly Listeners", data: {list_vals_js}, borderColor: '#8e44ad', backgroundColor: 'rgba(142, 68, 173, 0.2)', borderWidth: 3, fill: true, tension: 0.3 }}] }},
+        type: 'line', data: {{ labels: {list_dates_js}, datasets:[{{ label: "Monthly Listeners", data: {list_vals_js}, borderColor: '#8e44ad', backgroundColor: 'rgba(142, 68, 173, 0.2)', borderWidth: 3, fill: true, tension: 0.3, spanGaps: true }}] }},
         options: {{ responsive: true, maintainAspectRatio: false }}
     }});
     </script>
@@ -1060,4 +1085,4 @@ html_content = f"""
 with open("index.html", "w", encoding="utf-8") as f:
     f.write(html_content)
 
-print("✅ Dashboard mis à jour (variables JSON réparées) !")
+print("✅ Dashboard mis à jour : Les trous dans les dates sont parfaitement comblés sur tous les graphiques !")
