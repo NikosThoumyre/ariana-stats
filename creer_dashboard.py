@@ -493,6 +493,122 @@ if os.path.exists("spotify_daily_songs.csv"):
 else:
     html_spotify_daily_songs = "<p style='text-align:center; padding: 20px; color:#666;'><em>Create a <b>spotify_daily_songs.csv</b> file to activate this tab!</em></p>"
 
+# --- SPOTIFY CHARTS MANUEL : WEEKLY SONGS ---
+html_spotify_weekly_songs = ""
+if os.path.exists("spotify_weekly_songs.csv"):
+    df_sc_ws = pd.read_csv("spotify_weekly_songs.csv", dtype=str, encoding='utf-8-sig').fillna('-')
+    if 'Artist' in df_sc_ws.columns:
+        df_sc_ws = df_sc_ws[df_sc_ws['Artist'].str.contains('Ariana', case=False, na=False)]
+        
+        if not df_sc_ws.empty:
+            html_spotify_weekly_songs += "<div class='sc-cards-grid'>"
+            for idx, row in df_sc_ws.iterrows():
+                trend = row.get('Trend', '-')
+                trend_class = "sc-neutral"
+                if '↑' in trend or '+' in trend: trend_class = "sc-up"
+                elif '↓' in trend or '-' in trend: trend_class = "sc-down"
+                
+                track_name = row.get('Track', '-')
+
+                html_spotify_weekly_songs += f"""
+                <div class="sc-ariana-card">
+                    <div class="sc-card-main">
+                        <img src="{row.get('Image_URL', '')}" class="sc-ariana-img-large" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';">
+                        
+                        <div class="sc-card-info">
+                            <div class="sc-ariana-rank">#{row.get('Rank', '-')} <span class="sc-trend {trend_class}">{trend}</span></div>
+                            <div class="sc-ariana-track">{html.escape(track_name)}</div>
+                            <div class="sc-ariana-streams">{format_en(row.get('Streams', '-'))} streams</div>
+                            
+                            <div class="sc-ariana-stats">
+                                <div class="sc-astat"><span class="sc-alab">Peak</span><span class="sc-aval">{row.get('Peak', '-')}</span></div>
+                                <div class="sc-astat"><span class="sc-alab">Prev</span><span class="sc-aval">{row.get('Prev', '-')}</span></div>
+                                <div class="sc-astat"><span class="sc-alab">Streak</span><span class="sc-aval">{row.get('Streak', '-')} weeks</span></div>
+                                <div class="sc-astat"><span class="sc-alab">Weeks on chart</span><span class="sc-aval">{row.get('Total weeks on chart', '-')} weeks</span></div>
+                            </div>
+                            
+                            <div class="sc-toggle" onclick="toggleDetails('weekly_s_{idx}', this)">More ⌄</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sc-details" id="sc-detail-weekly_s_{idx}">
+                        <div class="sc-grid">
+                            <div><strong>Release Date</strong></div><div>{row.get('Release Date', '-')}</div>
+                            <div><strong>First entry date</strong></div><div>{row.get('First entry date', '-')}</div>
+                            <div><strong>First entry position</strong></div><div>{row.get('First entry position', '-')}</div>
+                            <div><strong>Total weeks on chart</strong></div><div>{row.get('Total weeks on chart', '-')}</div>
+                            <div><strong>Producers</strong></div><div>{html.escape(row.get('Producers', '-'))}</div>
+                            <div><strong>Songwriters</strong></div><div><span style="text-decoration: underline;">{html.escape(row.get('Songwriters', '-'))}</span></div>
+                            <div><strong>Source / Label</strong></div><div>{html.escape(row.get('Source', '-'))}</div>
+                        </div>
+                    </div>
+                </div>
+                """
+            html_spotify_weekly_songs += "</div>"
+        else:
+            html_spotify_weekly_songs += "<p style='text-align:center;'>No Ariana Grande songs found in the CSV for this week.</p>"
+    else:
+        html_spotify_weekly_songs += "<p style='text-align:center;'>Error: The CSV format doesn't match.</p>"
+else:
+    html_spotify_weekly_songs = "<p style='text-align:center; padding: 20px; color:#666;'><em>Create a <b>spotify_weekly_songs.csv</b> file to activate this tab!</em></p>"
+
+# --- SPOTIFY CHARTS MANUEL : WEEKLY ALBUMS ---
+html_spotify_weekly_albums = ""
+if os.path.exists("spotify_weekly_albums.csv"):
+    df_sc_wa = pd.read_csv("spotify_weekly_albums.csv", dtype=str, encoding='utf-8-sig').fillna('-')
+    if 'Artist' in df_sc_wa.columns:
+        df_sc_wa = df_sc_wa[df_sc_wa['Artist'].str.contains('Ariana', case=False, na=False)]
+        
+        if not df_sc_wa.empty:
+            html_spotify_weekly_albums += "<div class='sc-cards-grid'>"
+            for idx, row in df_sc_wa.iterrows():
+                trend = row.get('Trend', '-')
+                trend_class = "sc-neutral"
+                if '↑' in trend or '+' in trend: trend_class = "sc-up"
+                elif '↓' in trend or '-' in trend: trend_class = "sc-down"
+                
+                # C'est un album, donc la colonne s'appelle "Album" et il n'y a pas de Streams
+                album_name = row.get('Album', '-')
+
+                html_spotify_weekly_albums += f"""
+                <div class="sc-ariana-card">
+                    <div class="sc-card-main">
+                        <img src="{row.get('Image_URL', '')}" class="sc-ariana-img-large" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png';">
+                        
+                        <div class="sc-card-info">
+                            <div class="sc-ariana-rank">#{row.get('Rank', '-')} <span class="sc-trend {trend_class}">{trend}</span></div>
+                            <div class="sc-ariana-track">{html.escape(album_name)}</div>
+                            <div class="sc-ariana-streams" style="visibility: hidden;">- streams</div> <!-- Garde l'alignement sans afficher -->
+                            
+                            <div class="sc-ariana-stats">
+                                <div class="sc-astat"><span class="sc-alab">Peak</span><span class="sc-aval">{row.get('Peak', '-')}</span></div>
+                                <div class="sc-astat"><span class="sc-alab">Prev</span><span class="sc-aval">{row.get('Prev', '-')}</span></div>
+                                <div class="sc-astat"><span class="sc-alab">Streak</span><span class="sc-aval">{row.get('Streak', '-')} wks</span></div>
+                            </div>
+                            
+                            <div class="sc-toggle" onclick="toggleDetails('weekly_a_{idx}', this)">More ⌄</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sc-details" id="sc-detail-weekly_a_{idx}">
+                        <div class="sc-grid">
+                            <div><strong>Release Date</strong></div><div>{row.get('Release Date', '-')}</div>
+                            <div><strong>First entry date</strong></div><div>{row.get('First entry date', '-')}</div>
+                            <div><strong>First entry position</strong></div><div>{row.get('First entry position', '-')}</div>
+                            <div><strong>Total weeks on chart</strong></div><div>{row.get('Total weeks on chart', '-')}</div>
+                            <div><strong>Source / Label</strong></div><div>{html.escape(row.get('Source', '-'))}</div>
+                        </div>
+                    </div>
+                </div>
+                """
+            html_spotify_weekly_albums += "</div>"
+        else:
+            html_spotify_weekly_albums += "<p style='text-align:center;'>No Ariana Grande albums found in the CSV for this week.</p>"
+    else:
+        html_spotify_weekly_albums += "<p style='text-align:center;'>Error: The CSV format doesn't match.</p>"
+else:
+    html_spotify_weekly_albums = "<p style='text-align:center; padding: 20px; color:#666;'><em>Create a <b>spotify_weekly_albums.csv</b> file to activate this tab!</em></p>"
+
 
 # ==========================================
 # 5. DONNÉES ARTISTE & LISTENERS
@@ -807,10 +923,12 @@ html_content = f"""
                     <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
                 </div>
                 <div id="SC-WeeklySongs" class="subtab-sc-content" style="display:none;">
-                    <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
+                    <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🌐 Spotify Weekly Top Songs (Global)</h2>
+                    {html_spotify_weekly_songs}
                 </div>
                 <div id="SC-WeeklyAlbums" class="subtab-sc-content" style="display:none;">
-                    <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
+                    <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🌐 Spotify Weekly Top Albums (Global)</h2>
+                    {html_spotify_weekly_albums}
                 </div>
                 <div id="SC-WeeklyArtists" class="subtab-sc-content" style="display:none;">
                     <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
