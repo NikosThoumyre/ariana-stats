@@ -442,10 +442,16 @@ if os.path.exists("spotify_daily_songs.csv"):
         if not df_sc.empty:
             html_spotify_daily_songs += "<div class='sc-cards-grid'>"
             for idx, row in df_sc.iterrows():
-                trend = row.get('Trend', '-')
+                trend = str(row.get('Trend', '-'))
+                trend_upper = trend.upper() # On met en majuscules pour éviter les bugs (New, new, NEW...)
+                
                 trend_class = "sc-neutral"
-                if '↑' in trend or '+' in trend: trend_class = "sc-up"
-                elif '↓' in trend or '-' in trend: trend_class = "sc-down"
+                if 'NEW' in trend_upper or 'RE-ENTRY' in trend_upper: 
+                    trend_class = "sc-new"
+                elif '↑' in trend or '+' in trend: 
+                    trend_class = "sc-up"
+                elif '↓' in trend or '-' in trend: 
+                    trend_class = "sc-down"
                 
                 track_name = row.get('Track', '-')
                 df_chanson_hist = df[df['Song Title'] == track_name]
@@ -503,10 +509,16 @@ if os.path.exists("spotify_weekly_songs.csv"):
         if not df_sc_ws.empty:
             html_spotify_weekly_songs += "<div class='sc-cards-grid'>"
             for idx, row in df_sc_ws.iterrows():
-                trend = row.get('Trend', '-')
+                trend = str(row.get('Trend', '-'))
+                trend_upper = trend.upper() # On met en majuscules pour éviter les bugs (New, new, NEW...)
+                
                 trend_class = "sc-neutral"
-                if '↑' in trend or '+' in trend: trend_class = "sc-up"
-                elif '↓' in trend or '-' in trend: trend_class = "sc-down"
+                if 'NEW' in trend_upper or 'RE-ENTRY' in trend_upper: 
+                    trend_class = "sc-new"
+                elif '↑' in trend or '+' in trend: 
+                    trend_class = "sc-up"
+                elif '↓' in trend or '-' in trend: 
+                    trend_class = "sc-down"
                 
                 track_name = row.get('Track', '-')
 
@@ -562,10 +574,16 @@ if os.path.exists("spotify_weekly_albums.csv"):
         if not df_sc_wa.empty:
             html_spotify_weekly_albums += "<div class='sc-cards-grid'>"
             for idx, row in df_sc_wa.iterrows():
-                trend = row.get('Trend', '-')
+                trend = str(row.get('Trend', '-'))
+                trend_upper = trend.upper() # On met en majuscules pour éviter les bugs (New, new, NEW...)
+                
                 trend_class = "sc-neutral"
-                if '↑' in trend or '+' in trend: trend_class = "sc-up"
-                elif '↓' in trend or '-' in trend: trend_class = "sc-down"
+                if 'NEW' in trend_upper or 'RE-ENTRY' in trend_upper: 
+                    trend_class = "sc-new"
+                elif '↑' in trend or '+' in trend: 
+                    trend_class = "sc-up"
+                elif '↓' in trend or '-' in trend: 
+                    trend_class = "sc-down"
                 
                 # C'est un album, donc la colonne s'appelle "Album" et il n'y a pas de Streams
                 album_name = row.get('Album', '-')
@@ -782,6 +800,7 @@ html_content = f"""
         .sc-up {{ background-color: #e8f5e9; color: #2e7d32; }}
         .sc-down {{ background-color: #ffebee; color: #c62828; }}
         .sc-neutral {{ background-color: #f5f5f5; color: #757575; }}
+        .sc-new {{ background-color: #e3f2fd; color: #1565c0; }}
         
         .sc-toggle {{ font-weight: bold; font-size: 1em; color: #555; cursor: pointer; text-align: right; margin-top: 10px; align-self: flex-end; }}
         .sc-toggle:hover {{ text-decoration: underline; color: #257059; }}
