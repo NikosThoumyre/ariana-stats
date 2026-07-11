@@ -583,7 +583,8 @@ if os.path.exists("spotify_weekly_albums.csv"):
                             <div class="sc-ariana-stats">
                                 <div class="sc-astat"><span class="sc-alab">Peak</span><span class="sc-aval">{row.get('Peak', '-')}</span></div>
                                 <div class="sc-astat"><span class="sc-alab">Prev</span><span class="sc-aval">{row.get('Prev', '-')}</span></div>
-                                <div class="sc-astat"><span class="sc-alab">Streak</span><span class="sc-aval">{row.get('Streak', '-')} wks</span></div>
+                                <div class="sc-astat"><span class="sc-alab">Streak</span><span class="sc-aval">{row.get('Streak', '-')} weeks</span></div>
+                                <div class="sc-astat"><span class="sc-alab">Weeks on chart</span><span class="sc-aval">{row.get('Total weeks on chart', '-')} weeks</span></div>
                             </div>
                             
                             <div class="sc-toggle" onclick="toggleDetails('weekly_a_{idx}', this)">More ⌄</div>
@@ -595,7 +596,6 @@ if os.path.exists("spotify_weekly_albums.csv"):
                             <div><strong>Release Date</strong></div><div>{row.get('Release Date', '-')}</div>
                             <div><strong>First entry date</strong></div><div>{row.get('First entry date', '-')}</div>
                             <div><strong>First entry position</strong></div><div>{row.get('First entry position', '-')}</div>
-                            <div><strong>Total weeks on chart</strong></div><div>{row.get('Total weeks on chart', '-')}</div>
                             <div><strong>Source / Label</strong></div><div>{html.escape(row.get('Source', '-'))}</div>
                         </div>
                     </div>
@@ -1031,9 +1031,8 @@ html_content = f"""
         document.querySelectorAll('.table-listeners tbody tr').forEach(row => {{
             if (row.cells[1] && row.cells[1].innerText.includes('Ariana Grande')) {{
                 row.style.backgroundColor = '#d1ede3';
-                row.style.fontWeight = 'bold';
                 row.style.borderLeft = '5px solid #257059';
-                row.cells[1].innerText = '⭐ Ariana Grande';
+                row.cells[1].innerText = 'Ariana Grande';
             }}
         }});
     }});
