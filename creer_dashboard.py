@@ -628,6 +628,68 @@ else:
     html_spotify_weekly_albums = "<p style='text-align:center; padding: 20px; color:#666;'><em>Create a <b>spotify_weekly_albums.csv</b> file to activate this tab!</em></p>"
 
 
+# --- SPOTIFY CHARTS MANUEL : ARTISTS (DAILY & WEEKLY COMBINÉS) ---
+html_spotify_artists = "<div style='display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 20px;'>"
+
+if os.path.exists("spotify_artists.csv"):
+    df_art = pd.read_csv("spotify_artists.csv", dtype=str, encoding='utf-8-sig').fillna('-')
+    
+    for idx, row in df_art.iterrows():
+        typ = row.get('Type', 'Unknown')
+        titre_carte = f"{typ} Top Artist"
+        label_streak = "days" if typ.lower() == "daily" else "weeks"
+        
+        rank = row.get('Rank', '-')
+        prev = row.get('Prev', '-')
+        peak = row.get('Peak', '-')
+        streak = row.get('Streak', '-')
+        trend = str(row.get('Trend', '-'))
+        trend_upper = trend.upper()
+
+        trend_class = "sc-neutral"
+        if 'NEW' in trend_upper or 'RE-ENTRY' in trend_upper: 
+            trend_class = "sc-new"
+        elif '↑' in trend_upper or '+' in trend_upper: 
+            trend_class = "sc-up"
+        elif '↓' in trend_upper or '-' in trend_upper: 
+            trend_class = "sc-down"
+
+        # Image fixe de l'artiste 
+        img_url = "https://upload.wikimedia.org/wikipedia/en/thumb/3/3e/Ariana_Grande_-_Petal.png/250px-Ariana_Grande_-_Petal.png"
+        
+        html_spotify_artists += f"""
+        <div class='sc-ariana-card' style='flex: 1; min-width: 350px; max-width: 500px;'>
+            <h3 style='text-align: center; color: #257059; margin-top: 0; border-bottom: 2px dashed #eaeaea; padding-bottom: 10px;'>{titre_carte}</h3>
+            <div class="sc-card-main" style="margin-top: 15px;">
+                <img src="{img_url}" class="sc-ariana-img-large" style="width: 130px; height: 130px; min-height: 130px;">
+                
+                <div class="sc-card-info" style="min-width: 0; padding: 0;">
+                    <div class="sc-ariana-rank">#{rank} <span class="sc-trend {trend_class}">{trend}</span></div>
+                    <div class="sc-ariana-track" style="font-size: 1.4em;">Ariana Grande</div>
+                    
+                    <div class="sc-ariana-stats" style="margin-top: 15px; padding: 10px; gap: 5px;">
+                        <div class="sc-astat"><span class="sc-alab">Peak</span><span class="sc-aval">{peak}</span></div>
+                        <div class="sc-astat"><span class="sc-alab">Prev</span><span class="sc-aval">{prev}</span></div>
+                        <div class="sc-astat"><span class="sc-alab">Streak</span><span class="sc-aval" style="font-size:1.1em;">{streak} <span style="font-size:0.5em; font-weight:normal;">{label_streak}</span></span></div>
+                    </div>
+                    <div class="sc-toggle" onclick="toggleDetails('art_{idx}', this)" style="margin-top: 5px;">More ⌄</div>
+                </div>
+            </div>
+            
+            <div class="sc-details" id="sc-detail-art_{idx}" style="padding: 15px; margin-top: 15px;">
+                <div class="sc-grid" style="grid-template-columns: 150px 1fr;">
+                    <div><strong>First entry date</strong></div><div>{row.get('First entry date', '-')}</div>
+                    <div><strong>First entry position</strong></div><div>#{row.get('First entry position', '-')}</div>
+                </div>
+            </div>
+        </div>
+        """
+else:
+    html_spotify_artists += "<p style='text-align:center; margin-top:20px; color:#999; width: 100%;'><em>Create a <b>spotify_artists.csv</b> file to display the Artist rankings!</em></p>"
+
+html_spotify_artists += "</div>"
+
+
 # ==========================================
 # 5. DONNÉES ARTISTE & LISTENERS
 # ==========================================
@@ -928,18 +990,14 @@ html_content = f"""
             <div id="SpotifyCharts" class="tabcontent">
                 <div class="subtab">
                     <button class="subtab-sc active" onclick="openSubTab(event, 'SC-DailySongs', 'subtab-sc')" id="defaultSC">Daily Top Songs</button>
-                    <button class="subtab-sc" onclick="openSubTab(event, 'SC-DailyArtists', 'subtab-sc')">Daily Top Artists</button>
+                    <button class="subtab-sc" onclick="openSubTab(event, 'SC-Artists', 'subtab-sc')">Top Artists Ranking</button>
                     <button class="subtab-sc" onclick="openSubTab(event, 'SC-WeeklySongs', 'subtab-sc')">Weekly Top Songs</button>
                     <button class="subtab-sc" onclick="openSubTab(event, 'SC-WeeklyAlbums', 'subtab-sc')">Weekly Top Albums</button>
-                    <button class="subtab-sc" onclick="openSubTab(event, 'SC-WeeklyArtists', 'subtab-sc')">Weekly Top Artists</button>
                 </div>
                 
                 <div id="SC-DailySongs" class="subtab-sc-content" style="display:block;">
                     <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🌐 Spotify Daily Top Songs (Global)</h2>
                     {html_spotify_daily_songs}
-                </div>
-                <div id="SC-DailyArtists" class="subtab-sc-content" style="display:none;">
-                    <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
                 </div>
                 <div id="SC-WeeklySongs" class="subtab-sc-content" style="display:none;">
                     <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🌐 Spotify Weekly Top Songs (Global)</h2>
@@ -949,8 +1007,9 @@ html_content = f"""
                     <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🌐 Spotify Weekly Top Albums (Global)</h2>
                     {html_spotify_weekly_albums}
                 </div>
-                <div id="SC-WeeklyArtists" class="subtab-sc-content" style="display:none;">
-                    <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
+                <div id="SC-Artists" class="subtab-sc-content" style="display:none;">
+                    <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🌐 Spotify Top Artists (Global)</h2>
+                    {html_spotify_artists}
                 </div>
             </div>
 

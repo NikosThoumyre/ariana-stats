@@ -26837,10 +26837,9 @@
             <div id="SpotifyCharts" class="tabcontent">
                 <div class="subtab">
                     <button class="subtab-sc active" onclick="openSubTab(event, 'SC-DailySongs', 'subtab-sc')" id="defaultSC">Daily Top Songs</button>
-                    <button class="subtab-sc" onclick="openSubTab(event, 'SC-DailyArtists', 'subtab-sc')">Daily Top Artists</button>
+                    <button class="subtab-sc" onclick="openSubTab(event, 'SC-Artists', 'subtab-sc')">Top Artists Ranking</button>
                     <button class="subtab-sc" onclick="openSubTab(event, 'SC-WeeklySongs', 'subtab-sc')">Weekly Top Songs</button>
                     <button class="subtab-sc" onclick="openSubTab(event, 'SC-WeeklyAlbums', 'subtab-sc')">Weekly Top Albums</button>
-                    <button class="subtab-sc" onclick="openSubTab(event, 'SC-WeeklyArtists', 'subtab-sc')">Weekly Top Artists</button>
                 </div>
                 
                 <div id="SC-DailySongs" class="subtab-sc-content" style="display:block;">
@@ -26939,9 +26938,6 @@
                     </div>
                 </div>
                 </div>
-                </div>
-                <div id="SC-DailyArtists" class="subtab-sc-content" style="display:none;">
-                    <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
                 </div>
                 <div id="SC-WeeklySongs" class="subtab-sc-content" style="display:none;">
                     <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🌐 Spotify Weekly Top Songs (Global)</h2>
@@ -27200,8 +27196,61 @@
                 </div>
                 </div>
                 </div>
-                <div id="SC-WeeklyArtists" class="subtab-sc-content" style="display:none;">
-                    <p style='text-align:center; padding: 20px; color:#666;'><em>Coming soon...</em></p>
+                <div id="SC-Artists" class="subtab-sc-content" style="display:none;">
+                    <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🌐 Spotify Top Artists (Global)</h2>
+                    <div style='display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 20px;'>
+        <div class='sc-ariana-card' style='flex: 1; min-width: 350px; max-width: 500px;'>
+            <h3 style='text-align: center; color: #257059; margin-top: 0; border-bottom: 2px dashed #eaeaea; padding-bottom: 10px;'>Daily Top Artist</h3>
+            <div class="sc-card-main" style="margin-top: 15px;">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/3e/Ariana_Grande_-_Petal.png/250px-Ariana_Grande_-_Petal.png" class="sc-ariana-img-large" style="width: 130px; height: 130px; min-height: 130px;">
+                
+                <div class="sc-card-info" style="min-width: 0; padding: 0;">
+                    <div class="sc-ariana-rank">#8 <span class="sc-trend sc-up">↑ 1</span></div>
+                    <div class="sc-ariana-track" style="font-size: 1.4em;">Ariana Grande</div>
+                    
+                    <div class="sc-ariana-stats" style="margin-top: 15px; padding: 10px; gap: 5px;">
+                        <div class="sc-astat"><span class="sc-alab">Peak</span><span class="sc-aval">2</span></div>
+                        <div class="sc-astat"><span class="sc-alab">Prev</span><span class="sc-aval">9</span></div>
+                        <div class="sc-astat"><span class="sc-alab">Streak</span><span class="sc-aval" style="font-size:1.1em;">1727 <span style="font-size:0.5em; font-weight:normal;">days</span></span></div>
+                    </div>
+                    <div class="sc-toggle" onclick="toggleDetails('art_0', this)" style="margin-top: 5px;">More ⌄</div>
+                </div>
+            </div>
+            
+            <div class="sc-details" id="sc-detail-art_0" style="padding: 15px; margin-top: 15px;">
+                <div class="sc-grid" style="grid-template-columns: 150px 1fr;">
+                    <div><strong>First entry date</strong></div><div>Oct 21 2021</div>
+                    <div><strong>First entry position</strong></div><div>#17</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='sc-ariana-card' style='flex: 1; min-width: 350px; max-width: 500px;'>
+            <h3 style='text-align: center; color: #257059; margin-top: 0; border-bottom: 2px dashed #eaeaea; padding-bottom: 10px;'>Weekly Top Artist</h3>
+            <div class="sc-card-main" style="margin-top: 15px;">
+                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/3/3e/Ariana_Grande_-_Petal.png/250px-Ariana_Grande_-_Petal.png" class="sc-ariana-img-large" style="width: 130px; height: 130px; min-height: 130px;">
+                
+                <div class="sc-card-info" style="min-width: 0; padding: 0;">
+                    <div class="sc-ariana-rank">#9 <span class="sc-trend sc-down">-</span></div>
+                    <div class="sc-ariana-track" style="font-size: 1.4em;">Ariana Grande</div>
+                    
+                    <div class="sc-ariana-stats" style="margin-top: 15px; padding: 10px; gap: 5px;">
+                        <div class="sc-astat"><span class="sc-alab">Peak</span><span class="sc-aval">2</span></div>
+                        <div class="sc-astat"><span class="sc-alab">Prev</span><span class="sc-aval">9</span></div>
+                        <div class="sc-astat"><span class="sc-alab">Streak</span><span class="sc-aval" style="font-size:1.1em;">247 <span style="font-size:0.5em; font-weight:normal;">weeks</span></span></div>
+                    </div>
+                    <div class="sc-toggle" onclick="toggleDetails('art_1', this)" style="margin-top: 5px;">More ⌄</div>
+                </div>
+            </div>
+            
+            <div class="sc-details" id="sc-detail-art_1" style="padding: 15px; margin-top: 15px;">
+                <div class="sc-grid" style="grid-template-columns: 150px 1fr;">
+                    <div><strong>First entry date</strong></div><div>Oct 21 2021</div>
+                    <div><strong>First entry position</strong></div><div>#17</div>
+                </div>
+            </div>
+        </div>
+        </div>
                 </div>
             </div>
 
