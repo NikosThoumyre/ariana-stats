@@ -164,8 +164,10 @@ else:
 # 2. LOGIQUE DES ALBUMS
 # ==========================================
 album_list_stats = []
+album_pred_list_stats = [] # 💡 NOUVEAU
 albums_js_data = {}
 html_album_tracklists = ""
+html_album_pred_tracklists = "" # 💡 NOUVEAU
 
 for i, (nom_album, tracklist_brute) in enumerate(ALBUM_TRACKS.items()):
     uids_album = [resolve_track_id(t) for t in tracklist_brute]
@@ -179,8 +181,21 @@ for i, (nom_album, tracklist_brute) in enumerate(ALBUM_TRACKS.items()):
         alb_veille = alb_veille[alb_veille['Unique_ID'].isin(uids_album)]
         daily_veille = alb_veille['Daily_num'].sum()
         
-    lien_cliquable = f'<a href="javascript:void(0)" onclick="afficherDetailsAlbum({i})" class="song-link">💿 {html.escape(nom_album)}</a>'
+    lien_cliquable = f'<a href="javascript:void(0)" onclick="afficherDetailsAlbum({i}, \'perf\')" class="song-link">💿 {html.escape(nom_album)}</a>'
+    lien_cliquable_pred = f'<a href="javascript:void(0)" onclick="afficherDetailsAlbum({i}, \'pred\')" class="song-link">💿 {html.escape(nom_album)}</a>'
+
     album_list_stats.append({'Album': lien_cliquable, 'Total_Num': tot_jour, 'Daily_Num': daily_jour, 'Diff': daily_jour - daily_veille})
+
+    # --- 💡 NOUVEAU : Prédictions de l'album ---
+    alb_pred = df_pred[df_pred['Unique_ID'].isin(uids_album)]
+    tot_pred = alb_pred['Prédiction'].sum()
+    album_pred_list_stats.append({
+        'Album': lien_cliquable_pred, 
+        'Streams Actuels ': format_en(tot_jour), 
+        'Daily Actuel ': format_en(daily_jour), 
+        f'Prédiction (au 31 Déc {date_obj_jour.year})': format_en(tot_pred), 
+        'Prediction_Num': tot_pred
+    })
 
     df_alb_hist = df[df['Unique_ID'].isin(uids_album)]
     df_alb_agg = df_alb_hist.groupby('Date').agg({'Streams_num':'sum', 'Daily_num':'sum'}).reset_index().sort_values('Date')
@@ -191,6 +206,7 @@ for i, (nom_album, tracklist_brute) in enumerate(ALBUM_TRACKS.items()):
         'daily': df_alb_agg['Daily_num'].tolist()
     }
 
+    # --- Tracklist classique ---
     df_tracklist = df_jour[df_jour['Unique_ID'].isin(uids_album)].copy()
     if not df_tracklist.empty:
         if not df_affichage_evo.empty:
@@ -213,11 +229,28 @@ for i, (nom_album, tracklist_brute) in enumerate(ALBUM_TRACKS.items()):
     
     html_album_tracklists += f'<div id="tracklist-album-{i}" class="album-tracklist-content" style="display:none;">{tbl_html}</div>\n'
 
+    # --- 💡 NOUVEAU : Tracklist des Prédictions ---
+    df_tracklist_pred = df_pred[df_pred['Unique_ID'].isin(uids_album)].copy()
+    if not df_tracklist_pred.empty:
+        df_tracklist_pred['Ordre_Album'] = df_tracklist_pred['Unique_ID'].map(order_dict)
+        df_tracklist_pred = df_tracklist_pred.sort_values('Ordre_Album')
+        tbl_pred_html = df_tracklist_pred[['Chanson', 'Streams Actuels ', 'Daily Actuel ', f'Prédiction (au 31 Déc {date_obj_jour.year})']].to_html(index=False, classes="table-chansons auto-index", escape=False)
+    else:
+        tbl_pred_html = "<p style='text-align:center; padding: 20px; color: #666;'><em>Aucune prédiction disponible.</em></p>"
+    
+    html_album_pred_tracklists += f'<div id="tracklist-pred-album-{i}" class="album-tracklist-pred-content" style="display:none;">{tbl_pred_html}</div>\n'
+
+
 df_album_list = pd.DataFrame(album_list_stats).sort_values('Total_Num', ascending=False)
 df_album_list['Total Streams '] = df_album_list['Total_Num'].apply(format_en)
 df_album_list['Daily Streams '] = df_album_list['Daily_Num'].apply(format_en)
 df_album_list['Évolution'] = df_album_list['Diff'].apply(format_evo)
 html_tableau_albums_list = df_album_list[['Album', 'Total Streams ', 'Daily Streams ', 'Évolution']].to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
+
+# 💡 NOUVEAU : Tableau global des prédictions d'albums
+df_album_pred_list = pd.DataFrame(album_pred_list_stats).sort_values('Prediction_Num', ascending=False)
+html_tableau_albums_pred_list = df_album_pred_list[['Album', 'Streams Actuels ', 'Daily Actuel ', f'Prédiction (au 31 Déc {date_obj_jour.year})']].to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
+
 
 # ==========================================
 # 3. GRAPHIQUES JSON & MARKET SHARE & PERIODIC
@@ -951,9 +984,19 @@ html_content = f"""
 
             <!-- ONGLET ALBUMS -->
             <div id="Albums" class="tabcontent">
-                <h2 style="color: #257059; margin-top: 0;">Discography</h2>
-                <p style="color: #666; font-style: italic; margin-top: -10px;">Click on an album to see its tracklist and evolution.</p>
-                {html_tableau_albums_list}
+                <div class="subtab">
+                    <button class="subtab-albums active" onclick="openSubTab(event, 'Albums-Overview', 'subtab-albums')" id="defaultAlbums">Overview</button>
+                    <button class="subtab-albums" onclick="openSubTab(event, 'Albums-Predictions', 'subtab-albums')">🔮 Predictions</button>
+                </div>
+                
+                <div id="Albums-Overview" class="subtab-albums-content" style="display:block;">
+                    <p style="color: #666; font-style: italic; text-align: center; margin-bottom: 20px;">Click on an album to see its tracklist and evolution.</p>
+                    {html_tableau_albums_list}
+                </div>
+                <div id="Albums-Predictions" class="subtab-albums-content" style="display:none;">
+                    <div class="info-prediction">Projection based on {jours_restants} remaining days in the year.</div>
+                    {html_tableau_albums_pred_list}
+                </div>
             </div>
 
             <!-- ONGLET SONGS -->
@@ -1034,8 +1077,18 @@ html_content = f"""
             <h2 id="TitreAlbumDetail" style="text-align: center; color: #257059; font-size: 2em; margin-top: 0;">Album</h2>
             <div class="chart-container" style="height: 350px;"><canvas id="chartAlbumTotal"></canvas></div>
             <div class="chart-container" style="height: 350px;"><canvas id="chartAlbumDaily"></canvas></div>
-            <h3 style="color: #257059; margin-top: 40px; text-align: center;">💿 Tracklist Performance</h3>
-            <div id="album-tracklists-container">{html_album_tracklists}</div>
+            
+            <div class="subtab" style="margin-top: 40px;">
+                <button class="subtab-album-detail active" onclick="openSubTab(event, 'Album-Tracklist-Perf', 'subtab-album-detail')" id="btnAlbumPerf">💿 Tracklist Performance</button>
+                <button class="subtab-album-detail" onclick="openSubTab(event, 'Album-Tracklist-Pred', 'subtab-album-detail')" id="btnAlbumPred">🔮 Tracklist Predictions</button>
+            </div>
+            
+            <div id="Album-Tracklist-Perf" class="subtab-album-detail-content" style="display:block;">
+                <div id="album-tracklists-container">{html_album_tracklists}</div>
+            </div>
+            <div id="Album-Tracklist-Pred" class="subtab-album-detail-content" style="display:none;">
+                <div id="album-tracklists-pred-container">{html_album_pred_tracklists}</div>
+            </div>
         </div>
 
     </div>
@@ -1054,6 +1107,7 @@ html_content = f"""
       if(tabName === 'Listeners' && document.getElementById('defaultList')) document.getElementById('defaultList').click();
       if(tabName === 'Songs' && document.getElementById('defaultSongs')) document.getElementById('defaultSongs').click();
       if(tabName === 'SpotifyCharts' && document.getElementById('defaultSC')) document.getElementById('defaultSC').click();
+      if(tabName === 'Albums' && document.getElementById('defaultAlbums')) document.getElementById('defaultAlbums').click();
       
       window.dispatchEvent(new Event('resize')); 
     }}
@@ -1248,16 +1302,28 @@ html_content = f"""
     const albums_js_data = {albums_js_data_json};
     let graphAlbumTotal = null, graphAlbumDaily = null;
 
-    function afficherDetailsAlbum(albumIndex) {{
+    function afficherDetailsAlbum(albumIndex, mode = 'perf') {{
         document.getElementById('DashboardPrincipal').style.display = 'none';
         document.getElementById('PageDetailChanson').style.display = 'none';
         document.getElementById('PageDetailAlbum').style.display = 'block';
         
+        // Cache toutes les tracklists existantes
         document.querySelectorAll('.album-tracklist-content').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.album-tracklist-pred-content').forEach(el => el.style.display = 'none');
+        
+        // Affiche la bonne tracklist pour cet album spécifique
         document.getElementById('tracklist-album-' + albumIndex).style.display = 'block';
+        document.getElementById('tracklist-pred-album-' + albumIndex).style.display = 'block';
         
         const donnees = albums_js_data[albumIndex];
         document.getElementById('TitreAlbumDetail').innerText = "💿 " + donnees.titre;
+
+        // Ouvre le bon sous-onglet selon d'où l'on vient (Overview ou Prédictions)
+        if(mode === 'pred') {{
+            document.getElementById('btnAlbumPred').click();
+        }} else {{
+            document.getElementById('btnAlbumPerf').click();
+        }}
 
         if (graphAlbumTotal) graphAlbumTotal.destroy();
         if (graphAlbumDaily) graphAlbumDaily.destroy();
