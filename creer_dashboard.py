@@ -66,7 +66,7 @@ ALBUM_TRACKS = {
     "Positions": ["shut up", "34+35", "motive (with Doja Cat)", "just like magic", "off the table (with The Weeknd)", "six thirty", "safety net (feat. Ty Dolla $ign)", "my hair", "nasty", "west side", "love language", "positions", "obvious", "pov"],
     "Positions (Deluxe)": ["shut up", "34+35", "motive (with Doja Cat)", "just like magic", "off the table (with The Weeknd)", "six thirty", "safety net (feat. Ty Dolla $ign)", "my hair", "nasty", "west side", "love language", "positions", "obvious", "pov", "someone like u - interlude", "test drive", "34+35 Remix (feat. Doja Cat, Megan Thee Stallion) - Remix", "worst behavior", "main thing"],
     "eternal sunshine": ["intro (end of the world)", "bye", "don't wanna break up again", "Saturn Returns Interlude", "eternal sunshine", "supernatural", "true story", "the boy is mine", "yes, and?", "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)"],
-    "eternal sunshine (deluxe: brighter days ahead)": ["intro (end of the world)", "bye", "don't wanna break up again", "Saturn Returns Interlude", "eternal sunshine", "supernatural", "true story", "the boy is mine", "yes, and?", "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)", "intro (end of the world) - extended", "twilight zone", "warm", "dandelion", "past life", "Hampstead"],
+    "eternal sunshine deluxe: brighter days ahead": ["intro (end of the world)", "bye", "don't wanna break up again", "Saturn Returns Interlude", "eternal sunshine", "supernatural", "true story", "the boy is mine", "yes, and?", "we can't be friends (wait for your love)", "i wish i hated you", "imperfect for you", "ordinary things (feat. Nonna)", "intro (end of the world) - extended", "twilight zone", "warm", "dandelion", "past life", "Hampstead"],
     "Petal": ["hate that i made you love me"]
 }
 
@@ -246,6 +246,85 @@ df_album_list['Total Streams '] = df_album_list['Total_Num'].apply(format_en)
 df_album_list['Daily Streams '] = df_album_list['Daily_Num'].apply(format_en)
 df_album_list['Évolution'] = df_album_list['Diff'].apply(format_evo)
 html_tableau_albums_list = df_album_list[['Album', 'Total Streams ', 'Daily Streams ', 'Évolution']].to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
+
+# --- 💡 NOUVEAU : LE GRAPHIQUE VISUEL DES ALBUMS STUDIOS (MODE "ERA") ---
+# On relie le nom d'affichage ("Yours Truly") à sa version la plus complète ("Yours Truly (Tenth Anniversary Edition)")
+ALBUM_VISUALS = {
+    "Yours Truly": {
+        "source": "Yours Truly (Tenth Anniversary Edition)", 
+        "cover": "https://m.media-amazon.com/images/I/61nIR7pU23L.jpg"
+    },
+    "My Everything": {
+        "source": "My Everything (Tenth Anniversary Edition)", 
+        "cover": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg?ariana-grande-2014-my-everything-cd&class=scaled&v=1406816989"
+    },
+    "Dangerous Woman": {
+        "source": "Dangerous Woman (Tenth Anniversary Edition)", 
+        "cover": "https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg"
+    },
+    "Sweetener": {
+        "source": "Sweetener", 
+        "cover": "https://m.media-amazon.com/images/I/81FH-xfuK5L.jpg"
+    },
+    "thank u, next": {
+        "source": "thank u, next", 
+        "cover": "https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8"
+    },
+    "Positions": {
+        "source": "Positions (Deluxe)", 
+        "cover": "https://m.media-amazon.com/images/I/71Jx3DUwN1L.jpg"
+    },
+    "eternal sunshine": {
+        "source": "eternal sunshine deluxe: brighter days ahead", 
+        "cover": "https://cdn-images.dzcdn.net/images/cover/0924ef037bd95dc8589af0316f64524b/0x1900-000000-80-0-0.jpg"
+    }
+}
+
+def format_billions(val):
+    if val >= 1_000_000_000:
+        return f"{val / 1_000_000_000:.1f}B".replace(".0B", "B")
+    else:
+        return f"{val / 1_000_000:.1f}M".replace(".0M", "M")
+
+album_keys_list = list(ALBUM_TRACKS.keys())
+html_visual_chart = "<div class='album-visual-chart'>"
+max_streams_visual = 0
+visual_data = []
+
+# On parcourt notre dictionnaire d'Eras
+for display_name, config in ALBUM_VISUALS.items():
+    source_name = config["source"] # Le nom de la version Deluxe
+    cover_url = config["cover"]
+    
+    # On calcule les streams de la version Deluxe (la version ciblée)
+    uids = [resolve_track_id(t) for t in ALBUM_TRACKS[source_name]]
+    tot = df_jour[df_jour['Unique_ID'].isin(uids)]['Streams_num'].sum()
+    
+    if tot > max_streams_visual: max_streams_visual = tot
+    
+    # L'index permet au clic de rediriger vers le tableau complet de la version Deluxe !
+    idx = album_keys_list.index(source_name)
+    visual_data.append({'name': display_name, 'total': tot, 'cover': cover_url, 'idx': idx})
+
+# On dessine les barres
+# On dessine les barres (Avec calcul mathématique strict en pixels !)
+max_bar_height = 400 # La barre la plus haute fera 300 pixels exacts
+
+for d in visual_data:
+    # Calcul en pixels stricts pour bloquer l'écrasement CSS
+    height_px = int((d['total'] / max_streams_visual) * max_bar_height) if max_streams_visual > 0 else 30
+    height_px = max(height_px, 40) # 40px minimum pour qu'on puisse voir l'image
+    
+    formatted_streams = format_billions(d['total'])
+    
+    html_visual_chart += f"""
+    <div class="avc-bar-container" onclick="afficherDetailsAlbum({d['idx']}, 'perf')">
+        <div class="avc-streams">{formatted_streams}</div>
+        <div class="avc-bar" style="height: {height_px}px; background-image: url('{d['cover']}');"></div>
+        <div class="avc-label">{d['name']}</div>
+    </div>
+    """
+html_visual_chart += "</div>"
 
 # 💡 NOUVEAU : Tableau global des prédictions d'albums
 df_album_pred_list = pd.DataFrame(album_pred_list_stats).sort_values('Prediction_Num', ascending=False)
@@ -903,7 +982,16 @@ html_content = f"""
         .sc-details {{ display: none; padding: 25px; border-top: 1px dashed #eaeaea; background-color: #fafafa; font-size: 1em; margin-top: 20px; border-radius: 8px; }}
         .sc-grid {{ display: grid; grid-template-columns: 200px 1fr; gap: 12px; }}
         .sc-grid strong {{ color: #555; }}
-    </style>
+
+        /* 💡 DESIGN DU GRAPHIQUE BARRES ALBUMS (IMAGE) CORRIGÉ */
+        .album-visual-chart {{ display: flex; justify-content: center; align-items: flex-end; gap: 15px; margin: 20px auto 40px auto; padding: 20px 20px 10px 20px; background-color: #f4f7f6; border-radius: 12px; max-width: 900px; }}
+        .avc-bar-container {{ display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; max-width: 100px; cursor: pointer; transition: transform 0.2s; }}
+        .avc-bar-container:hover {{ transform: translateY(-5px); }}
+        .avc-streams {{ font-weight: 900; color: #222; margin-bottom: 8px; font-size: 1.1em; font-family: 'Segoe UI', Tahoma, sans-serif; }}
+        .avc-bar {{ width: 100%; background-size: cover; background-position: center; border-radius: 4px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: box-shadow 0.2s; }}
+        .avc-bar-container:hover .avc-bar {{ box-shadow: 0 8px 15px rgba(37,112,89,0.4); }}
+        .avc-label {{ margin-top: 10px; font-size: 0.75em; text-align: center; color: #555; font-weight: bold; height: 35px; display: flex; align-items: flex-start; justify-content: center; line-height: 1.2; }}
+        </style>
 </head>
 <body>
 
@@ -990,6 +1078,8 @@ html_content = f"""
                 </div>
                 
                 <div id="Albums-Overview" class="subtab-albums-content" style="display:block;">
+                    {html_visual_chart} <!-- 💡 LE NOUVEAU GRAPHIQUE À BARRES ! -->
+                    <hr style="border: 1px dashed #eaeaea; margin: 30px 0;">
                     <p style="color: #666; font-style: italic; text-align: center; margin-bottom: 20px;">Click on an album to see its tracklist and evolution.</p>
                     {html_tableau_albums_list}
                 </div>
