@@ -124,17 +124,17 @@
         .avc-label { margin-top: 10px; font-size: 0.75em; text-align: center; color: #555; font-weight: bold; height: 35px; display: flex; align-items: flex-start; justify-content: center; line-height: 1.2; }
         
         /* 💡 DESIGN : VINYL PLAQUES (BILLION CLUB) */
-        .plaque-grid { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-        .plaque-card { background: #111; padding: 20px; border-radius: 8px; width: 220px; border: 2px solid #444; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.5); position: relative; overflow: hidden; transition: transform 0.3s; }
+        .plaque-grid { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+        .plaque-card { background: #111; padding: 20px; border-radius: 8px; width: 220px; border: 2px solid #444; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.5); position: relative; overflow: hidden; transition: transform 0.3s; cursor: pointer; }
         .plaque-card:hover { transform: translateY(-10px); }
-        .plaque-title { color: #d4af37; font-size: 0.9em; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; font-weight: bold; }
-        .vinyl { width: 130px; height: 130px; background: #000; border-radius: 50%; margin: 0 auto 20px auto; border: 4px solid #333; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.8); background-image: repeating-radial-gradient(#111 0, #111 4px, #222 5px, #222 6px); animation: spin 4s linear infinite; }
-        .vinyl-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 45px; height: 45px; border-radius: 50%; background: #d4af37; border: 2px solid #111; background-size: cover; background-position: center; }
-        .vinyl-hole { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 12px; height: 12px; border-radius: 50%; background: #111; }
+        .plaque-title { font-size: 0.9em; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; font-weight: bold; }
+        /* Le vinyle : l'image prend toute la place, et on ajoute une ombre interne */
+        .vinyl { width: 140px; height: 140px; border-radius: 50%; margin: 0 auto 20px auto; border: 4px solid #333; position: relative; box-shadow: 0 0 15px rgba(0,0,0,0.8); background-size: cover; background-position: center; animation: spin 4s linear infinite; }
+        /* Le vrai trou au centre */
+        .vinyl-hole { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 16px; height: 16px; border-radius: 50%; background: #111; border: 2px solid #222; z-index: 2; box-shadow: inset 0 2px 5px rgba(0,0,0,0.8); }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .plaque-song { color: white; font-weight: bold; font-size: 1.1em; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .plaque-streams { color: #888; font-family: 'Courier New', Courier, monospace; font-size: 0.95em; }
-        
     </style>
 </head>
 <body>
@@ -27035,227 +27035,205 @@
                 </div>
                 <div id="Songs-Billion" class="subtab-songs-content" style="display:none;">
                     <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">💿 The Billionaires Club</h2>
-                    <div class='plaque-grid'>
-    <div class="plaque-card" onclick="afficherDetailsChanson('7 rings___0')" style="cursor:pointer;" title="Voir les graphiques de 7 rings">
-        <div class="plaque-title">2 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8');"></div>
-            <div class="vinyl-hole"></div>
+                    <h3 style='color: #d4af37; text-align: center; margin: 40px 0 20px 0; border-bottom: 1px solid #d4af37; padding-bottom: 10px; font-size: 1.3em;'>👑 2 BILLION CLUB</h3><div class='plaque-grid'>
+        <div class="plaque-card" style="border-color: #d4af37;" onclick="afficherDetailsChanson('7 rings___0')" title="Voir les graphiques de 7 rings">
+            <div class="plaque-title" style="color: #d4af37;">2 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab67616d0000b273c09b83b3e64c20d7ee82c40c'); border-color: #d4af37;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">7 rings</div>
+            <div class="plaque-streams">2,875,760,356</div>
         </div>
-        <div class="plaque-song">7 rings</div>
-        <div class="plaque-streams">2,875,760,356</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('thank u, next___0')" style="cursor:pointer;" title="Voir les graphiques de thank u, next">
-        <div class="plaque-title">2 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #d4af37;" onclick="afficherDetailsChanson('thank u, next___0')" title="Voir les graphiques de thank u, next">
+            <div class="plaque-title" style="color: #d4af37;">2 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8'); border-color: #d4af37;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">thank u, next</div>
+            <div class="plaque-streams">2,285,231,388</div>
         </div>
-        <div class="plaque-song">thank u, next</div>
-        <div class="plaque-streams">2,285,231,388</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('* Save Your Tears (Remix) (with Ariana Grande) - Bonus Track___0')" style="cursor:pointer;" title="Voir les graphiques de * Save Your Tears (Remix) (with Ariana Grande) - Bonus Track">
-        <div class="plaque-title">2 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #d4af37;" onclick="afficherDetailsChanson('* Save Your Tears (Remix) (with Ariana Grande) - Bonus Track___0')" title="Voir les graphiques de * Save Your Tears (Remix) (with Ariana Grande) - Bonus Track">
+            <div class="plaque-title" style="color: #d4af37;">2 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab67616d0000b27311c60d9cf6b8f152d1945ab8'); border-color: #d4af37;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">* Save Your Tears (Remix) (with Ariana Grande) - Bonus Track</div>
+            <div class="plaque-streams">2,285,215,511</div>
         </div>
-        <div class="plaque-song">* Save Your Tears (Remix) (with Ariana Grande) - Bonus Track</div>
-        <div class="plaque-streams">2,285,215,511</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('One Last Time___0')" style="cursor:pointer;" title="Voir les graphiques de One Last Time">
-        <div class="plaque-title">2 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #d4af37;" onclick="afficherDetailsChanson('One Last Time___0')" title="Voir les graphiques de One Last Time">
+            <div class="plaque-title" style="color: #d4af37;">2 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #d4af37;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">One Last Time</div>
+            <div class="plaque-streams">2,156,790,855</div>
         </div>
-        <div class="plaque-song">One Last Time</div>
-        <div class="plaque-streams">2,156,790,855</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('Into You___0')" style="cursor:pointer;" title="Voir les graphiques de Into You">
-        <div class="plaque-title">2 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #d4af37;" onclick="afficherDetailsChanson('Into You___0')" title="Voir les graphiques de Into You">
+            <div class="plaque-title" style="color: #d4af37;">2 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab67616d0000b27376cda156bf9bcfcc1fb2d8c3'); border-color: #d4af37;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">Into You</div>
+            <div class="plaque-streams">2,064,946,816</div>
         </div>
-        <div class="plaque-song">Into You</div>
-        <div class="plaque-streams">2,064,946,816</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('we can\'t be friends (wait for your love)___0')" style="cursor:pointer;" title="Voir les graphiques de we can&#x27;t be friends (wait for your love)">
-        <div class="plaque-title">2 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #d4af37;" onclick="afficherDetailsChanson('we can\'t be friends (wait for your love)___0')" title="Voir les graphiques de we can&#x27;t be friends (wait for your love)">
+            <div class="plaque-title" style="color: #d4af37;">2 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #d4af37;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">we can&#x27;t be friends (wait for your love)</div>
+            <div class="plaque-streams">2,049,609,397</div>
         </div>
-        <div class="plaque-song">we can&#x27;t be friends (wait for your love)</div>
-        <div class="plaque-streams">2,049,609,397</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('Side To Side___0')" style="cursor:pointer;" title="Voir les graphiques de Side To Side">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        </div><h3 style='color: #e5e4e2; text-align: center; margin: 40px 0 20px 0; border-bottom: 1px solid #e5e4e2; padding-bottom: 10px; font-size: 1.3em;'>💿 1 BILLION CLUB</h3><div class='plaque-grid'>
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('Side To Side___0')" title="Voir les graphiques de Side To Side">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">Side To Side</div>
+            <div class="plaque-streams">1,943,645,239</div>
         </div>
-        <div class="plaque-song">Side To Side</div>
-        <div class="plaque-streams">1,943,645,239</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('positions___0')" style="cursor:pointer;" title="Voir les graphiques de positions">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://m.media-amazon.com/images/I/71Jx3DUwN1L.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('positions___0')" title="Voir les graphiques de positions">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">positions</div>
+            <div class="plaque-streams">1,768,371,429</div>
         </div>
-        <div class="plaque-song">positions</div>
-        <div class="plaque-streams">1,768,371,429</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('* Bang Bang___0')" style="cursor:pointer;" title="Voir les graphiques de * Bang Bang">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('* Bang Bang___0')" title="Voir les graphiques de * Bang Bang">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">* Bang Bang</div>
+            <div class="plaque-streams">1,730,366,390</div>
         </div>
-        <div class="plaque-song">* Bang Bang</div>
-        <div class="plaque-streams">1,730,366,390</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('Dangerous Woman___0')" style="cursor:pointer;" title="Voir les graphiques de Dangerous Woman">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('Dangerous Woman___0')" title="Voir les graphiques de Dangerous Woman">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">Dangerous Woman</div>
+            <div class="plaque-streams">1,657,466,898</div>
         </div>
-        <div class="plaque-song">Dangerous Woman</div>
-        <div class="plaque-streams">1,657,466,898</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('no tears left to cry___0')" style="cursor:pointer;" title="Voir les graphiques de no tears left to cry">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://m.media-amazon.com/images/I/81FH-xfuK5L.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('no tears left to cry___0')" title="Voir les graphiques de no tears left to cry">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">no tears left to cry</div>
+            <div class="plaque-streams">1,604,865,119</div>
         </div>
-        <div class="plaque-song">no tears left to cry</div>
-        <div class="plaque-streams">1,604,865,119</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('Santa Tell Me___0')" style="cursor:pointer;" title="Voir les graphiques de Santa Tell Me">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://m.media-amazon.com/images/I/71D0YnO2L1L.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('Santa Tell Me___0')" title="Voir les graphiques de Santa Tell Me">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">Santa Tell Me</div>
+            <div class="plaque-streams">1,520,045,346</div>
         </div>
-        <div class="plaque-song">Santa Tell Me</div>
-        <div class="plaque-streams">1,520,045,346</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('Love Me Harder___0')" style="cursor:pointer;" title="Voir les graphiques de Love Me Harder">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('Love Me Harder___0')" title="Voir les graphiques de Love Me Harder">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">Love Me Harder</div>
+            <div class="plaque-streams">1,481,814,161</div>
         </div>
-        <div class="plaque-song">Love Me Harder</div>
-        <div class="plaque-streams">1,481,814,161</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('Stuck with U (with Justin Bieber)___0')" style="cursor:pointer;" title="Voir les graphiques de Stuck with U (with Justin Bieber)">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('Stuck with U (with Justin Bieber)___0')" title="Voir les graphiques de Stuck with U (with Justin Bieber)">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">Stuck with U (with Justin Bieber)</div>
+            <div class="plaque-streams">1,465,037,905</div>
         </div>
-        <div class="plaque-song">Stuck with U (with Justin Bieber)</div>
-        <div class="plaque-streams">1,465,037,905</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('* Die For You (with Ariana Grande) - Remix___0')" style="cursor:pointer;" title="Voir les graphiques de * Die For You (with Ariana Grande) - Remix">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('* Die For You (with Ariana Grande) - Remix___0')" title="Voir les graphiques de * Die For You (with Ariana Grande) - Remix">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">* Die For You (with Ariana Grande) - Remix</div>
+            <div class="plaque-streams">1,338,689,724</div>
         </div>
-        <div class="plaque-song">* Die For You (with Ariana Grande) - Remix</div>
-        <div class="plaque-streams">1,338,689,724</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('God is a woman___0')" style="cursor:pointer;" title="Voir les graphiques de God is a woman">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://m.media-amazon.com/images/I/81FH-xfuK5L.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('God is a woman___0')" title="Voir les graphiques de God is a woman">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">God is a woman</div>
+            <div class="plaque-streams">1,308,416,749</div>
         </div>
-        <div class="plaque-song">God is a woman</div>
-        <div class="plaque-streams">1,308,416,749</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('Break Free___0')" style="cursor:pointer;" title="Voir les graphiques de Break Free">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('Break Free___0')" title="Voir les graphiques de Break Free">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">Break Free</div>
+            <div class="plaque-streams">1,273,365,002</div>
         </div>
-        <div class="plaque-song">Break Free</div>
-        <div class="plaque-streams">1,273,365,002</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('* Rain On Me (with Ariana Grande)___0')" style="cursor:pointer;" title="Voir les graphiques de * Rain On Me (with Ariana Grande)">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('* Rain On Me (with Ariana Grande)___0')" title="Voir les graphiques de * Rain On Me (with Ariana Grande)">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">* Rain On Me (with Ariana Grande)</div>
+            <div class="plaque-streams">1,260,332,267</div>
         </div>
-        <div class="plaque-song">* Rain On Me (with Ariana Grande)</div>
-        <div class="plaque-streams">1,260,332,267</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('34+35___0')" style="cursor:pointer;" title="Voir les graphiques de 34+35">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://m.media-amazon.com/images/I/71Jx3DUwN1L.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('34+35___0')" title="Voir les graphiques de 34+35">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">34+35</div>
+            <div class="plaque-streams">1,200,185,603</div>
         </div>
-        <div class="plaque-song">34+35</div>
-        <div class="plaque-streams">1,200,185,603</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('Problem___0')" style="cursor:pointer;" title="Voir les graphiques de Problem">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('Problem___0')" title="Voir les graphiques de Problem">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">Problem</div>
+            <div class="plaque-streams">1,157,433,723</div>
         </div>
-        <div class="plaque-song">Problem</div>
-        <div class="plaque-streams">1,157,433,723</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('break up with your girlfriend, i\'m bored___0')" style="cursor:pointer;" title="Voir les graphiques de break up with your girlfriend, i&#x27;m bored">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('break up with your girlfriend, i\'m bored___0')" title="Voir les graphiques de break up with your girlfriend, i&#x27;m bored">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">break up with your girlfriend, i&#x27;m bored</div>
+            <div class="plaque-streams">1,149,891,808</div>
         </div>
-        <div class="plaque-song">break up with your girlfriend, i&#x27;m bored</div>
-        <div class="plaque-streams">1,149,891,808</div>
-    </div>
-    
-    <div class="plaque-card" onclick="afficherDetailsChanson('boyfriend (with Social House)___0')" style="cursor:pointer;" title="Voir les graphiques de boyfriend (with Social House)">
-        <div class="plaque-title">1 Billion Club</div>
-        <div class="vinyl">
-            <div class="vinyl-center" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952');"></div>
-            <div class="vinyl-hole"></div>
+        
+        <div class="plaque-card" style="border-color: #e5e4e2;" onclick="afficherDetailsChanson('boyfriend (with Social House)___0')" title="Voir les graphiques de boyfriend (with Social House)">
+            <div class="plaque-title" style="color: #e5e4e2;">1 Billion Club</div>
+            <div class="vinyl" style="background-image: url('https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952'); border-color: #e5e4e2;">
+                <div class="vinyl-hole"></div>
+            </div>
+            <div class="plaque-song">boyfriend (with Social House)</div>
+            <div class="plaque-streams">1,105,609,628</div>
         </div>
-        <div class="plaque-song">boyfriend (with Social House)</div>
-        <div class="plaque-streams">1,105,609,628</div>
-    </div>
-    </div>
+        </div>
                 </div>
             </div>
 
