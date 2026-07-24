@@ -205,7 +205,7 @@ for b in sorted(df_billion['Billions'].unique(), reverse=True):
     count_tier = len(df_tier)
     
     if b >= 3:
-        color = "#b9f2ff" 
+        color = "#0F52BA" 
         club_name = f"💎 {b} BILLION CLUB ({count_tier})"
     elif b == 2:
         color = "#d4af37" 
