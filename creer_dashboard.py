@@ -163,10 +163,28 @@ else:
 
 # 1. TON DICTIONNAIRE MANUEL DES IMAGES (Tu peux ajouter toutes tes chansons ici !)
 SONG_COVERS = {
-    "7 rings": "https://i.scdn.co/image/ab67616d0000b273c09b83b3e64c20d7ee82c40c",
+    "7 rings": "https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8",
     "thank u, next": "https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8",
-    "Into You": "https://i.scdn.co/image/ab67616d0000b27376cda156bf9bcfcc1fb2d8c3",
-    "* Save Your Tears (Remix) (with Ariana Grande) - Bonus Track": "https://i.scdn.co/image/ab67616d0000b27311c60d9cf6b8f152d1945ab8"
+    "Into You": "https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg",
+    "* Save Your Tears (Remix) (with Ariana Grande) - Bonus Track": "https://www.udiscovermusic.com/wp-content/uploads/2021/04/The-Weeknd-Save-Your-Tears-Remix-1.jpg",
+    "One Last Time": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg?ariana-grande-2014-my-everything-cd&class=scaled&v=1406816989",
+    "we can't be friends (wait for your love)": "https://i.scdn.co/image/ab67616d0000b2738b58d20f1b77295730db15b4",
+    "Side To Side": "https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg",
+    "Positions": "https://tse4.mm.bing.net/th/id/OIP.yeFgIigxjNUVjX5w895OHgHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
+    "* Bang Bang": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg?ariana-grande-2014-my-everything-cd&class=scaled&v=1406816989",
+    "Dangerous Woman": "https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg",
+    "no tears left to cry": "https://m.media-amazon.com/images/I/81FH-xfuK5L.jpg",
+    "Santa Tell Me": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/9d/3d/87/9d3d8798-121e-e55b-5fbd-f4eed06302a4/14UMGIM55455.rgb.jpg/1200x1200bf-60.jpg",
+    "Love Me Harder": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg?ariana-grande-2014-my-everything-cd&class=scaled&v=1406816989",
+    "Stuck with U (with Justin Bieber)": "https://tse1.mm.bing.net/th/id/OIP.ZEh2Yicz6PaPTU1q7EvmDAHaGp?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
+    "* Die For You (with Ariana Grande) - Remix": "https://images.lifestyleasia.com/wp-content/uploads/sites/5/2023/02/23164500/Die-for-you-remix.jpg",
+    "God is a woman": "https://m.media-amazon.com/images/I/81FH-xfuK5L.jpg",
+    "Break Free": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg?ariana-grande-2014-my-everything-cd&class=scaled&v=1406816989",
+    "* Rain On Me (with Ariana Grande)": "https://cdn.sanity.io/images/iujqne6u/3xlc4ub9mmgaxaz7/f63a6ab38615cc104a39216ade364dff9488e2c9-4200x4200.jpg?w=1920&q=70&auto=format",
+    "34+35": "https://tse4.mm.bing.net/th/id/OIP.yeFgIigxjNUVjX5w895OHgHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
+    "Problem": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg?ariana-grande-2014-my-everything-cd&class=scaled&v=1406816989",
+    "break up with your girlfriend, i'm bored": "https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8",
+    "boyfriend (with Social House)": "https://th.bing.com/th/id/R.1578ea76874af1f0d38bdb9de886a747?rik=Zkuja9e46J1v3w&pid=ImgRaw&r=0"
     # Ajoute les autres chansons ici au format "Titre exact du CSV": "Lien de l'image",
 }
 
@@ -1169,11 +1187,11 @@ html_content = f"""
             <div id="Songs" class="tabcontent">
                 <div class="subtab">
                     <button class="subtab-songs active" onclick="openSubTab(event, 'Songs-Overview', 'subtab-songs')" id="defaultSongs">Overview</button>
+                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Billion', 'subtab-songs')">💿 Billion Club</button>
                     <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Evolution', 'subtab-songs')">📈 Evolution</button>
                     <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Predictions', 'subtab-songs')">🔮 Predictions</button>
                     <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Targets', 'subtab-songs')">🎯 Next 100M Targets</button>
                     <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Overtakes', 'subtab-songs')">🏎️ Time to Overtake</button>
-                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Billion', 'subtab-songs')">💿 Billion Club</button>
                 </div>
                 
                 <div id="Songs-Overview" class="subtab-songs-content" style="display:block;">
