@@ -159,6 +159,50 @@ if not df_over.empty:
 else:
     html_tableau_overtake = "<p style='text-align:center; padding:20px;'>Aucun dépassement en cours détecté.</p>"
 
+# --- 💡 NOUVEAU : LE CLUB DES MILLIARDAIRES (VINYL PLAQUES) ---
+ALBUM_COVERS = {
+    "Yours Truly": "https://m.media-amazon.com/images/I/61nIR7pU23L.jpg",
+    "Christmas Kisses": "https://m.media-amazon.com/images/I/71D0YnO2L1L.jpg",
+    "My Everything": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg",
+    "Christmas & Chill": "https://m.media-amazon.com/images/I/81xU-yq4KcL.jpg",
+    "Dangerous Woman": "https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg",
+    "Sweetener": "https://m.media-amazon.com/images/I/81FH-xfuK5L.jpg",
+    "thank u, next": "https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8",
+    "Positions": "https://m.media-amazon.com/images/I/71Jx3DUwN1L.jpg",
+    "eternal sunshine": "https://cdn-images.dzcdn.net/images/cover/0924ef037bd95dc8589af0316f64524b/0x1900-000000-80-0-0.jpg",
+    "Petal": "https://static.fnac-static.com/multimedia/Images/FR/NR/81/b7/35/20297601/1541-1/tsp20260513115042/petal.jpg"
+}
+
+# Dictionnaire inversé pour associer chaque chanson à la pochette de son album
+TRACK_TO_COVER = {}
+for album, tracks in ALBUM_TRACKS.items():
+    cover = ALBUM_COVERS.get(album.replace(" (Deluxe)", "").replace(" (Tenth Anniversary Edition)", ""), "https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952")
+    for track in tracks:
+        TRACK_TO_COVER[resolve_track_id(track)] = cover
+
+df_billion = df_jour[df_jour['Streams_num'] >= 1_000_000_000].sort_values('Streams_num', ascending=False)
+html_billion_club = "<div class='plaque-grid'>"
+for idx, row in df_billion.iterrows():
+    streams = row['Streams_num']
+    billions = int(streams // 1_000_000_000)
+    club_title = f"{billions} Billion Club"
+    uid = row['Unique_ID']
+    titre = html.escape(row['Song Title'])
+    cover = TRACK_TO_COVER.get(uid, "https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952")
+    uid_safe = uid.replace("'", "\\'").replace('"', '&quot;')
+    
+    html_billion_club += f"""
+    <div class="plaque-card" onclick="afficherDetailsChanson('{uid_safe}')" style="cursor:pointer;" title="Voir les graphiques de {titre}">
+        <div class="plaque-title">{club_title}</div>
+        <div class="vinyl">
+            <div class="vinyl-center" style="background-image: url('{cover}');"></div>
+            <div class="vinyl-hole"></div>
+        </div>
+        <div class="plaque-song">{titre}</div>
+        <div class="plaque-streams">{format_en(streams)}</div>
+    </div>
+    """
+html_billion_club += "</div>"
 
 # ==========================================
 # 2. LOGIQUE DES ALBUMS
@@ -995,7 +1039,20 @@ html_content = f"""
         .avc-bar {{ width: 100%; background-size: cover; background-position: center; border-radius: 4px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: box-shadow 0.2s; }}
         .avc-bar-container:hover .avc-bar {{ box-shadow: 0 8px 15px rgba(37,112,89,0.4); }}
         .avc-label {{ margin-top: 10px; font-size: 0.75em; text-align: center; color: #555; font-weight: bold; height: 35px; display: flex; align-items: flex-start; justify-content: center; line-height: 1.2; }}
-        </style>
+        
+        /* 💡 DESIGN : VINYL PLAQUES (BILLION CLUB) */
+        .plaque-grid {{ display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }}
+        .plaque-card {{ background: #111; padding: 20px; border-radius: 8px; width: 220px; border: 2px solid #444; text-align: center; box-shadow: 0 15px 30px rgba(0,0,0,0.5); position: relative; overflow: hidden; transition: transform 0.3s; }}
+        .plaque-card:hover {{ transform: translateY(-10px); }}
+        .plaque-title {{ color: #d4af37; font-size: 0.9em; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20px; font-weight: bold; }}
+        .vinyl {{ width: 130px; height: 130px; background: #000; border-radius: 50%; margin: 0 auto 20px auto; border: 4px solid #333; position: relative; box-shadow: 0 0 10px rgba(0,0,0,0.8); background-image: repeating-radial-gradient(#111 0, #111 4px, #222 5px, #222 6px); animation: spin 4s linear infinite; }}
+        .vinyl-center {{ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 45px; height: 45px; border-radius: 50%; background: #d4af37; border: 2px solid #111; background-size: cover; background-position: center; }}
+        .vinyl-hole {{ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 12px; height: 12px; border-radius: 50%; background: #111; }}
+        @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
+        .plaque-song {{ color: white; font-weight: bold; font-size: 1.1em; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+        .plaque-streams {{ color: #888; font-family: 'Courier New', Courier, monospace; font-size: 0.95em; }}
+        
+    </style>
 </head>
 <body>
 
@@ -1101,6 +1158,7 @@ html_content = f"""
                     <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Predictions', 'subtab-songs')">🔮 Predictions</button>
                     <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Targets', 'subtab-songs')">🎯 Next 100M Targets</button>
                     <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Overtakes', 'subtab-songs')">🏎️ Time to Overtake</button>
+                    <button class="subtab-songs" onclick="openSubTab(event, 'Songs-Billion', 'subtab-songs')">💿 Billion Club</button>
                 </div>
                 
                 <div id="Songs-Overview" class="subtab-songs-content" style="display:block;">
@@ -1120,6 +1178,10 @@ html_content = f"""
                 <div id="Songs-Overtakes" class="subtab-songs-content" style="display:none;">
                     <div class="info-prediction">Songs catching up to others in Total Streams!</div>
                     {html_tableau_overtake}
+                </div>
+                <div id="Songs-Billion" class="subtab-songs-content" style="display:none;">
+                    <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">💿 The Billionaires Club</h2>
+                    {html_billion_club}
                 </div>
             </div>
 

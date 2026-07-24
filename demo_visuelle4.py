@@ -1,0 +1,149 @@
+import os
+
+print("🎨 Création de la page de démonstration n°4 (Analyses Avancées)...")
+
+html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Visuals 4 - Advanced Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 40px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        h1 { text-align: center; color: #257059; }
+        .desc { text-align: center; color: #666; font-style: italic; margin-bottom: 40px; }
+        
+        .analytics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .chart-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 15px rgba(0,0,0,0.05); border: 1px solid #eaeaea; }
+        .chart-card.full-width { grid-column: 1 / -1; }
+        .chart-title { color: #257059; text-align: center; margin-top: 0; margin-bottom: 10px; font-size: 1.2em; }
+        .chart-subtitle { text-align: center; color: #888; font-size: 0.85em; margin-bottom: 20px; }
+        
+        .canvas-container { position: relative; height: 300px; width: 100%; }
+        .canvas-container.small { height: 280px; }
+        .canvas-container.horizontal { height: 150px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📊 Advanced Analytics (Démo)</h1>
+        <p class="desc">Des graphiques propres, lisibles et analytiques, générés avec Chart.js.</p>
+
+        <div class="analytics-grid">
+            
+            <!-- 1. POLAR AREA CHART -->
+            <div class="chart-card">
+                <h3 class="chart-title">💿 Daily Streams by Era</h3>
+                <p class="chart-subtitle">Quel album est le plus écouté aujourd'hui ?</p>
+                <div class="canvas-container small">
+                    <canvas id="polarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 2. DOUGHNUT CHART -->
+            <div class="chart-card">
+                <h3 class="chart-title">🤝 Solo vs. Collaborations</h3>
+                <p class="chart-subtitle">Le poids des featurings dans ses écoutes quotidiennes.</p>
+                <div class="canvas-container small">
+                    <canvas id="collabChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 3. STACKED BAR CHART -->
+            <div class="chart-card full-width">
+                <h3 class="chart-title">🗂️ Catalog Depth (Profondeur du catalogue)</h3>
+                <p class="chart-subtitle">Répartition des streams : Le Top 5 écrase-t-il le reste de la discographie ?</p>
+                <div class="canvas-container horizontal">
+                    <canvas id="depthChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. POLAR AREA CHART (Répartition par Ère)
+        // ----------------------------------------------------
+        new Chart(document.getElementById('polarChart').getContext('2d'), {
+            type: 'polarArea',
+            data: {
+                labels: ['Yours Truly', 'My Everything', 'Dangerous Woman', 'Sweetener', 'thank u, next', 'Positions', 'eternal sunshine'],
+                datasets: [{
+                    data: [1.2, 5.4, 6.1, 3.8, 4.5, 2.9, 10.2], // Données fictives en millions
+                    backgroundColor: [
+                        'rgba(204, 204, 204, 0.6)', // Gris
+                        'rgba(54, 162, 235, 0.6)',  // Bleu
+                        'rgba(0, 0, 0, 0.6)',       // Noir
+                        'rgba(255, 206, 86, 0.6)',  // Beige/Jaune
+                        'rgba(255, 105, 180, 0.6)', // Rose
+                        'rgba(75, 192, 192, 0.6)',  // Vert d'eau
+                        'rgba(217, 83, 79, 0.6)'    // Rouge
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'right', labels: { boxWidth: 12 } } }
+            }
+        });
+
+        // ----------------------------------------------------
+        // 2. DOUGHNUT CHART (Solo vs Collab)
+        // ----------------------------------------------------
+        new Chart(document.getElementById('collabChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: ['100% Solo', 'As Lead (with Feature)', 'As Feature (Guest)'],
+                datasets: [{
+                    data: [58, 25, 17], // Pourcentages fictifs
+                    backgroundColor: ['#257059', '#50c29f', '#b0c4b1'],
+                    borderWidth: 2, borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '65%',
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+
+        // ----------------------------------------------------
+        // 3. HORIZONTAL STACKED BAR (Catalog Depth)
+        // ----------------------------------------------------
+        new Chart(document.getElementById('depthChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: ['Today\'s Streams'],
+                datasets: [
+                    { label: 'Top 5 Songs', data: [45], backgroundColor: '#1e5d4a' },
+                    { label: 'Songs #6 to #20', data: [30], backgroundColor: '#359c7b' },
+                    { label: 'Rest of Catalog (200+ songs)', data: [25], backgroundColor: '#eaeaea' }
+                ]
+            },
+            options: {
+                indexAxis: 'y', // Transforme le graphique en barres horizontales !
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { stacked: true, max: 100, ticks: { callback: function(value) { return value + "%" } } },
+                    y: { stacked: true, display: false }
+                },
+                plugins: {
+                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.raw + '%'; } } },
+                    legend: { position: 'top' }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+"""
+
+with open("demo_visuelle4.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("✅ Fichier 'demo_visuelle4.html' généré avec succès ! Ouvre-le dans ton navigateur.")

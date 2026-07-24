@@ -1,0 +1,246 @@
+import os
+
+print("🎨 Création de la page de démonstration visuelle...")
+
+html_content = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Visuals - Ariana Stats</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 40px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        h2 { color: #257059; border-bottom: 2px solid #b0c4b1; padding-bottom: 10px; margin-top: 50px; }
+        
+        /* ------------------------------------------- */
+        /* 1. COMPTEUR ANIMÉ (ODOMETER EFFECT)         */
+        /* ------------------------------------------- */
+        .odometer-container { text-align: center; background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .odometer-label { font-size: 1.2em; color: #666; text-transform: uppercase; letter-spacing: 2px; font-weight: bold; }
+        .odometer-value { font-size: 4em; font-weight: 900; color: #257059; font-family: 'Courier New', Courier, monospace; margin: 10px 0; }
+        
+        /* ------------------------------------------- */
+        /* 2. HALL OF FAME / ACHIEVEMENT CARDS         */
+        /* ------------------------------------------- */
+        .hof-grid { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+        .hof-card { 
+            background: linear-gradient(135deg, #1e5d4a 0%, #359c7b 100%); 
+            color: white; padding: 25px; border-radius: 20px; width: 220px; text-align: center; 
+            box-shadow: 0 8px 15px rgba(37,112,89,0.2); position: relative; overflow: hidden; 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); cursor: default;
+        }
+        .hof-card:hover { transform: translateY(-10px) scale(1.03); box-shadow: 0 15px 25px rgba(37,112,89,0.4); }
+        
+        /* Petit effet brillant sur la carte */
+        .hof-card::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+            transform: rotate(30deg); transition: transform 0.5s;
+        }
+        .hof-card:hover::after { transform: rotate(30deg) translate(50%, 50%); }
+        
+        .hof-icon { font-size: 3.5em; margin-bottom: 15px; display: block; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); }
+        .hof-title { font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: bold; }
+        .hof-value { font-size: 1.8em; font-weight: 900; margin: 10px 0; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        .hof-sub { font-size: 0.9em; font-style: italic; background: rgba(0,0,0,0.2); padding: 5px 10px; border-radius: 20px; display: inline-block; }
+
+        /* ------------------------------------------- */
+        /* 3. VITRINE DES ALBUMS EN 3D                 */
+        /* ------------------------------------------- */
+        .showcase-container { 
+            display: flex; gap: 25px; justify-content: center; align-items: flex-end; 
+            height: 450px; background-color: #222; border-radius: 15px; padding: 30px; 
+            perspective: 1200px; /* L'astuce magique pour la 3D ! */
+            margin-top: 30px; box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+        }
+        
+        .album-card { 
+            width: 100px; display: flex; flex-direction: column; justify-content: flex-end; 
+            position: relative; transform-style: preserve-3d; 
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); cursor: pointer; 
+        }
+        
+        /* L'effet au survol : on soulève, on tourne un peu en 3D, on grossit */
+        .album-card:hover { 
+            transform: translateY(-20px) translateZ(40px) rotateX(10deg) rotateY(-5deg) scale(1.1); 
+            z-index: 10; 
+        }
+        
+        .album-bar { 
+            width: 100%; border-radius: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); 
+            background-size: cover; background-position: center; transition: box-shadow 0.4s;
+        }
+        
+        /* L'ombre qui bouge derrière l'album */
+        .album-card:hover .album-bar { box-shadow: -20px 30px 40px rgba(0,0,0,0.6); border: 2px solid rgba(255,255,255,0.2); }
+        
+        .album-streams { color: white; font-weight: bold; text-align: center; margin-bottom: 10px; font-family: 'Courier New', monospace; font-size: 1.2em; opacity: 0.8; transition: 0.4s;}
+        .album-card:hover .album-streams { color: #50c29f; opacity: 1; transform: translateZ(20px); text-shadow: 0 0 10px rgba(80,194,159,0.5);}
+
+        /* Le petit panneau noir qui glisse par dessus l'image au survol */
+        .album-info-hover {
+            position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.85); 
+            color: white; padding: 15px 5px; border-radius: 0 0 8px 8px; 
+            opacity: 0; transition: all 0.3s ease; text-align: center;
+            transform: translateY(10px); /* Démarrage un peu plus bas */
+        }
+        .album-card:hover .album-info-hover { opacity: 1; transform: translateY(0); }
+        
+        .info-name { font-weight: bold; font-size: 0.8em; text-transform: uppercase; margin-bottom: 5px; color: #50c29f;}
+        .info-date { font-size: 0.7em; color: #ccc; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1 style="text-align: center; color: #257059;">✨ Composants Visuels (Démo)</h1>
+        <p style="text-align: center; color: #666;">Teste les animations, passe ta souris sur les éléments.</p>
+
+        <!-- 1. COMPTEUR ANIMÉ -->
+        <h2>1. Compteur Animé (Odometer)</h2>
+        <div class="odometer-container">
+            <div class="odometer-label">Total Global Streams</div>
+            <div class="odometer-value" id="global-counter">0</div>
+            <div style="color: #888; font-size: 0.9em;">(L'animation se lance au chargement de la page)</div>
+        </div>
+
+        <!-- 2. HALL OF FAME -->
+        <h2>2. Trophées & Records (Hall of Fame)</h2>
+        <div class="hof-grid">
+            <div class="hof-card">
+                <span class="hof-icon">🔥</span>
+                <div class="hof-title">Biggest Daily Streams</div>
+                <div class="hof-value">17.4M</div>
+                <div class="hof-sub">May 29, 2026</div>
+            </div>
+            
+            <div class="hof-card" style="background: linear-gradient(135deg, #4b1a5e 0%, #8e44ad 100%);">
+                <span class="hof-icon">👑</span>
+                <div class="hof-title">Most Streamed Song</div>
+                <div class="hof-value">7 rings</div>
+                <div class="hof-sub">2.8B Total Streams</div>
+            </div>
+
+            <div class="hof-card" style="background: linear-gradient(135deg, #b35900 0%, #e67e22 100%);">
+                <span class="hof-icon">💎</span>
+                <div class="hof-title">Longest Charting</div>
+                <div class="hof-value">261 wks</div>
+                <div class="hof-sub">Dangerous Woman</div>
+            </div>
+            
+            <div class="hof-card" style="background: linear-gradient(135deg, #0d3b66 0%, #2980b9 100%);">
+                <span class="hof-icon">🚀</span>
+                <div class="hof-title">Fastest to 1 Billion</div>
+                <div class="hof-value">124 days</div>
+                <div class="hof-sub">thank u, next</div>
+            </div>
+        </div>
+
+        <!-- 3. VITRINE DES ALBUMS -->
+        <h2>3. Vitrine 3D des Albums</h2>
+        <p style="text-align: center; color: #666;">Passe la souris sur les pochettes !</p>
+        <div class="showcase-container">
+            
+            <div class="album-card">
+                <div class="album-streams">2.4B</div>
+                <div class="album-bar" style="height: 120px; background-image: url('https://i.scdn.co/image/ab67616d0000b273e970a25da7308c5ea3e03de3');"></div>
+                <div class="album-info-hover">
+                    <div class="info-name">Yours Truly</div>
+                    <div class="info-date">2013</div>
+                </div>
+            </div>
+
+            <div class="album-card">
+                <div class="album-streams">9.1B</div>
+                <div class="album-bar" style="height: 280px; background-image: url('https://i.scdn.co/image/ab67616d0000b273a3641fc4088a261a868516fb');"></div>
+                <div class="album-info-hover">
+                    <div class="info-name">My Everything</div>
+                    <div class="info-date">2014</div>
+                </div>
+            </div>
+
+            <div class="album-card">
+                <div class="album-streams">9.4B</div>
+                <div class="album-bar" style="height: 290px; background-image: url('https://i.scdn.co/image/ab67616d0000b27376cda156bf9bcfcc1fb2d8c3');"></div>
+                <div class="album-info-hover">
+                    <div class="info-name">Dangerous Woman</div>
+                    <div class="info-date">2016</div>
+                </div>
+            </div>
+
+            <div class="album-card">
+                <div class="album-streams">6.1B</div>
+                <div class="album-bar" style="height: 210px; background-image: url('https://i.scdn.co/image/ab67616d0000b2731c360a0f8ebce44136934c9c');"></div>
+                <div class="album-info-hover">
+                    <div class="info-name">Sweetener</div>
+                    <div class="info-date">2018</div>
+                </div>
+            </div>
+
+            <div class="album-card">
+                <div class="album-streams">9.9B</div>
+                <div class="album-bar" style="height: 300px; background-image: url('https://i.scdn.co/image/ab67616d0000b273c09b83b3e64c20d7ee82c40c');"></div>
+                <div class="album-info-hover">
+                    <div class="info-name">thank u, next</div>
+                    <div class="info-date">2019</div>
+                </div>
+            </div>
+
+            <div class="album-card">
+                <div class="album-streams">6.7B</div>
+                <div class="album-bar" style="height: 230px; background-image: url('https://i.scdn.co/image/ab67616d0000b273a32f6a7d5af1e7ecf26c6dcc');"></div>
+                <div class="album-info-hover">
+                    <div class="info-name">Positions</div>
+                    <div class="info-date">2020</div>
+                </div>
+            </div>
+
+            <div class="album-card">
+                <div class="album-streams">7.1B</div>
+                <div class="album-bar" style="height: 240px; background-image: url('https://i.scdn.co/image/ab67616d0000b273eb32c453cfffc9aa8c68ec7b');"></div>
+                <div class="album-info-hover">
+                    <div class="info-name">eternal sunshine</div>
+                    <div class="info-date">2024</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- SCRIPT POUR LE COMPTEUR ANIMÉ -->
+    <script>
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            let obj = document.getElementById(id);
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                // Math.floor calcule le chiffre intermédiaire. toLocaleString met les virgules !
+                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString('en-US');
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                } else {
+                    obj.innerHTML = end.toLocaleString('en-US'); // Fin exacte
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Au chargement de la page, on lance le compteur de 0 à 68 Milliards en 2.5 secondes (2500 ms) !
+        window.onload = function() {
+            animateValue("global-counter", 0, 68424741456, 2500);
+        };
+    </script>
+</body>
+</html>
+"""
+
+with open("demo_visuelle.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("✅ Fichier 'demo_visuelle.html' généré avec succès ! Ouvre-le dans ton navigateur.")
