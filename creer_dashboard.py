@@ -170,7 +170,7 @@ SONG_COVERS = {
     "One Last Time": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg?ariana-grande-2014-my-everything-cd&class=scaled&v=1406816989",
     "we can't be friends (wait for your love)": "https://i.scdn.co/image/ab67616d0000b2738b58d20f1b77295730db15b4",
     "Side To Side": "https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg",
-    "Positions": "https://tse4.mm.bing.net/th/id/OIP.yeFgIigxjNUVjX5w895OHgHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
+    "positions": "https://tse4.mm.bing.net/th/id/OIP.yeFgIigxjNUVjX5w895OHgHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3",
     "* Bang Bang": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg?ariana-grande-2014-my-everything-cd&class=scaled&v=1406816989",
     "Dangerous Woman": "https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg",
     "no tears left to cry": "https://m.media-amazon.com/images/I/81FH-xfuK5L.jpg",
@@ -192,39 +192,40 @@ SONG_COVERS = {
 df_billion = df_jour[df_jour['Streams_num'] >= 1_000_000_000].sort_values('Streams_num', ascending=False)
 df_billion['Billions'] = (df_billion['Streams_num'] // 1_000_000_000).astype(int)
 
+# 💡 NOUVEAU : On compte le total absolu des chansons milliardaires
+total_billionaires = len(df_billion)
+
 html_billion_club = ""
 
-# 3. On crée une section pour CHAQUE palier (2 Milliards, puis 1 Milliard...)
+# 3. On crée une section pour CHAQUE palier
 for b in sorted(df_billion['Billions'].unique(), reverse=True):
-    # Attribution des couleurs selon le niveau
+    df_tier = df_billion[df_billion['Billions'] == b]
+    
+    # 💡 NOUVEAU : On compte le nombre de chansons dans CE palier précis
+    count_tier = len(df_tier)
+    
     if b >= 3:
-        color = "#b9f2ff" # Bleu Diamant
-        club_name = f"💎 {b} BILLION CLUB"
+        color = "#b9f2ff" 
+        club_name = f"💎 {b} BILLION CLUB ({count_tier})"
     elif b == 2:
-        color = "#d4af37" # Or
-        club_name = "👑 2 BILLION CLUB"
+        color = "#d4af37" 
+        club_name = f"👑 2 BILLION CLUB ({count_tier})"
     else:
-        color = "#e5e4e2" # Platine / Argent
-        club_name = "💿 1 BILLION CLUB"
+        color = "#e5e4e2" 
+        club_name = f"💿 1 BILLION CLUB ({count_tier})"
         
-    # Le titre de la section
     html_billion_club += f"<h3 style='color: {color}; text-align: center; margin: 40px 0 20px 0; border-bottom: 1px solid {color}; padding-bottom: 10px; font-size: 1.3em;'>{club_name}</h3>"
     html_billion_club += "<div class='plaque-grid'>"
     
-    # On affiche les chansons de cette section
-    df_tier = df_billion[df_billion['Billions'] == b]
     for idx, row in df_tier.iterrows():
         uid = row['Unique_ID']
         titre_brut = row['Song Title']
         streams = row['Streams_num']
         
-        # On va chercher l'image dans TON dictionnaire. Si elle n'y est pas, on met une pochette par défaut
         cover = SONG_COVERS.get(titre_brut, "https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952")
-        
         titre_escape = html.escape(titre_brut)
         uid_safe = uid.replace("'", "\\'").replace('"', '&quot;')
         
-        # On applique la couleur (Or/Argent) aux bordures et aux textes !
         html_billion_club += f"""
         <div class="plaque-card" style="border-color: {color};" onclick="afficherDetailsChanson('{uid_safe}')" title="Voir les graphiques de {titre_escape}">
             <div class="plaque-title" style="color: {color};">{b} Billion Club</div>
@@ -1213,7 +1214,7 @@ html_content = f"""
                     {html_tableau_overtake}
                 </div>
                 <div id="Songs-Billion" class="subtab-songs-content" style="display:none;">
-                    <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">💿 The Billionaires Club</h2>
+                    <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">💿 The Billionaires Club ({total_billionaires})</h2>
                     {html_billion_club}
                 </div>
             </div>
