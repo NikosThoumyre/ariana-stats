@@ -945,31 +945,8 @@ html_listeners_grid = f"""
 </div>
 """
 
-# --- 💡 NOUVEAU : LOGIQUE DU NEWS FEED (TIMELINE) ---
+# --- 💡 NOUVEAU : LOGIQUE DU NEWS FEED (TIMELINE GROUPÉE & AMÉLIORÉE) ---
 news_items = []
-
-# Image par défaut pour Ariana
-default_img = "https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952"
-
-# 0. SÉCURITÉ PYLANCE : On recrée le dictionnaire des pochettes ici pour que VS Code ne panique pas !
-album_covers_news = {
-    "Yours Truly": "https://m.media-amazon.com/images/I/61nIR7pU23L.jpg",
-    "Christmas Kisses": "https://m.media-amazon.com/images/I/71D0YnO2L1L.jpg",
-    "My Everything": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg",
-    "Christmas & Chill": "https://m.media-amazon.com/images/I/81xU-yq4KcL.jpg",
-    "Dangerous Woman": "https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg",
-    "Sweetener": "https://m.media-amazon.com/images/I/81FH-xfuK5L.jpg",
-    "thank u, next": "https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8",
-    "Positions": "https://m.media-amazon.com/images/I/71Jx3DUwN1L.jpg",
-    "eternal sunshine": "https://cdn-images.dzcdn.net/images/cover/0924ef037bd95dc8589af0316f64524b/0x1900-000000-80-0-0.jpg",
-    "petal": "https://static.fnac-static.com/multimedia/Images/FR/NR/81/b7/35/20297601/1541-1/tsp20260513115042/petal.jpg"
-}
-track_to_cover_news = {}
-for album_name, tracks in ALBUM_TRACKS.items():
-    base_name = album_name.replace(" (Deluxe)", "").replace(" (Tenth Anniversary Edition)", "").replace(" deluxe: brighter days ahead", "")
-    cover = album_covers_news.get(base_name, default_img)
-    for t in tracks:
-        track_to_cover_news[resolve_track_id(t)] = cover
 
 # 1. Analyse des Listeners sur les 15 derniers jours
 for i in range(min(15, len(df_list_full_sorted)-1)):
@@ -984,16 +961,23 @@ for i in range(min(15, len(df_list_full_sorted)-1)):
     
     if l_curr >= l_peak and l_curr > l_prev:
         news_items.append({
-            "date": date_disp, "type": "peak", "cover": default_img,
+            "date": date_disp, "type": "peak", "icon": "👑",
             "text": f"New all-time peak of <b>{format_en(l_curr)}</b> Monthly Listeners! 🌍"
         })
     elif (l_curr // 1_000_000) > (l_prev // 1_000_000):
         news_items.append({
-            "date": date_disp, "type": "global", "cover": default_img,
+            "date": date_disp, "type": "global", "icon": "🌍",
             "text": f"Surpassed <b>{l_curr // 1_000_000} Million</b> Monthly Listeners! 📈"
         })
+    # 💡 NOUVEAU : Gain de plus de 200k listeners
+    elif (l_curr - l_prev) >= 200_000:
+        gain = l_curr - l_prev
+        news_items.append({
+            "date": date_disp, "type": "listeners", "icon": "👥",
+            "text": f"Massive update! Ariana gained <b>+{format_en(gain)}</b> Monthly Listeners in a single day!"
+        })
 
-# 2. Analyse des Streams (Global & Chansons) sur les 15 derniers jours !
+# 2. Analyse des Streams et Dépassements
 for i in range(min(15, len(dates)-1)):
     d_actuel = dates[i]
     d_veille = dates[i+1]
@@ -1007,17 +991,43 @@ for i in range(min(15, len(dates)-1)):
     if (tot_actuel // 1_000_000_000) > (tot_veille // 1_000_000_000):
         val = int(tot_actuel // 1_000_000_000)
         news_items.append({
-            "date": date_disp, "type": "global", "cover": default_img,
-            "text": f"The entire catalog surpassed <b>{val} BILLION</b> streams! 🌌"
+            "date": date_disp, "type": "global", "icon": "🌌",
+            "text": f"The entire catalog surpassed <b>{val} BILLION</b> streams! ✨"
         })
-        
+    
+    # 💡 NOUVEAU : Détection des dépassements (Overtakes) dans le Top 100
+    dict_act = dict(zip(df_actuel['Unique_ID'], df_actuel['Streams_num']))
+    dict_vei = dict(zip(df_veille['Unique_ID'], df_veille['Streams_num']))
+    uids_to_check = df_actuel.sort_values('Streams_num', ascending=False).head(100)['Unique_ID'].tolist()
+    
+    overtakes_today = []
+    for uid_a in uids_to_check:
+        for uid_b in uids_to_check:
+            if uid_a == uid_b: continue
+            s_a_act, s_b_act = dict_act.get(uid_a, 0), dict_act.get(uid_b, 0)
+            s_a_vei, s_b_vei = dict_vei.get(uid_a, 0), dict_vei.get(uid_b, 0)
+            
+            # Si A est passé devant B aujourd'hui
+            if s_a_vei > 0 and s_b_vei > 0 and s_a_act > s_b_act and s_a_vei < s_b_vei:
+                titre_a = html.escape(df_actuel[df_actuel['Unique_ID'] == uid_a]['Song Title'].values[0])
+                titre_b = html.escape(df_actuel[df_actuel['Unique_ID'] == uid_b]['Song Title'].values[0])
+                uid_a_safe = uid_a.replace("'", "\\'").replace('"', '&quot;')
+                uid_b_safe = uid_b.replace("'", "\\'").replace('"', '&quot;')
+                link_a = f"<a href=\"javascript:void(0)\" onclick=\"afficherDetailsChanson('{uid_a_safe}')\" class=\"song-link\">{titre_a}</a>"
+                link_b = f"<a href=\"javascript:void(0)\" onclick=\"afficherDetailsChanson('{uid_b_safe}')\" class=\"song-link\">{titre_b}</a>"
+                overtakes_today.append(f"{link_a} just overtook {link_b} in total streams!")
+    
+    # On limite à 2 dépassements par jour pour éviter le spam
+    for ot in overtakes_today[:2]:
+        news_items.append({"date": date_disp, "type": "overtake", "icon": "⚔️", "text": ot})
+
+    # Caps et Records Quotidiens
     for uid in df_actuel['Unique_ID']:
         s_act = df_actuel[df_actuel['Unique_ID'] == uid]['Streams_num'].values[0]
         d_act = df_actuel[df_actuel['Unique_ID'] == uid]['Daily_num'].values[0]
         titre = html.escape(df_actuel[df_actuel['Unique_ID'] == uid]['Song Title'].values[0])
-        
-        # 💡 UTILISATION DU DICTIONNAIRE LOCAL ICI
-        cover_url = track_to_cover_news.get(uid, default_img)
+        uid_safe = uid.replace("'", "\\'").replace('"', '&quot;')
+        link_titre = f"<a href=\"javascript:void(0)\" onclick=\"afficherDetailsChanson('{uid_safe}')\" class=\"song-link\">{titre}</a>"
         
         # Franchissement d'un cap de 100M
         s_vei_df = df_veille[df_veille['Unique_ID'] == uid]
@@ -1027,50 +1037,77 @@ for i in range(min(15, len(dates)-1)):
                 val = int(s_act // 100_000_000) * 100
                 m_text = f"{val/1000:.1f} Billion" if val >= 1000 else f"{val} Million"
                 news_items.append({
-                    "date": date_disp, "type": "milestone", "cover": cover_url,
-                    "text": f"<b>{titre}</b> surpassed <b>{m_text}</b> streams! 💿"
+                    "date": date_disp, "type": "milestone", "icon": "💿",
+                    "text": f"{link_titre} surpassed <b>{m_text}</b> streams!"
                 })
         
-        # Nouveau record Quotidien (Si > 50k streams pour éviter le spam)
+        # Nouveau record Quotidien (Si > 50k streams)
         if d_act > 50_000:
-            hist_max = df[(df['Unique_ID'] == uid) & (df['Date'] < d_actuel)]['Daily_num'].max()
-            if pd.notna(hist_max) and d_act > hist_max:
-                news_items.append({
-                    "date": date_disp, "type": "peak", "cover": cover_url,
-                    "text": f"<b>{titre}</b> reached a new tracking peak of <b>{format_en(d_act)}</b> daily streams! 🚀"
-                })
+            hist_max_df = df[(df['Unique_ID'] == uid) & (df['Date'] < d_actuel)]
+            if not hist_max_df.empty:
+                hist_max = hist_max_df['Daily_num'].max()
+                if pd.notna(hist_max) and d_act > hist_max:
+                    # 💡 NOUVEAU : Logique de la date du dernier peak !
+                    prev_peak_row = hist_max_df[hist_max_df['Daily_num'] == hist_max].iloc[0]
+                    prev_peak_date_obj = datetime.strptime(prev_peak_row['Date'], "%Y-%m-%d")
+                    curr_date_obj = datetime.strptime(d_actuel, "%Y-%m-%d")
+                    
+                    if (curr_date_obj - prev_peak_date_obj).days > 30:
+                        peak_text = f"since {prev_peak_date_obj.strftime('%b %d, %Y')}"
+                    else:
+                        peak_text = "since May 9th 2026"
+                        
+                    news_items.append({
+                        "date": date_disp, "type": "peak", "icon": "🚀",
+                        "text": f"{link_titre} reached a new tracking peak of <b>{format_en(d_act)}</b> daily streams {peak_text}!"
+                    })
 
-# 3. On trie les news chronologiquement (de la plus récente à la plus ancienne)
+# 3. Tri chronologique et Regroupement par Date !
 news_items = sorted(news_items, key=lambda x: datetime.strptime(x['date'], "%b %d, %Y"), reverse=True)
+
+grouped_news = {}
+for item in news_items:
+    d = item['date']
+    if d not in grouped_news: grouped_news[d] = []
+    grouped_news[d].append(item)
 
 # 4. Génération du code HTML
 html_news_feed = "<div class='timeline-container'>"
-if not news_items:
+if not grouped_news:
     html_news_feed += "<p style='text-align:center; color:#666; font-style:italic;'>No recent milestones or peaks in the past 15 days. Keep streaming!</p>"
 else:
-    for item in news_items:
-        badge_class = "badge-global"
-        badge_text = "Global Stat"
-        if item['type'] == "milestone":
-            badge_class = "badge-milestone"
-            badge_text = "Milestone"
-        elif item['type'] == "peak":
-            badge_class = "badge-peak"
-            badge_text = "New Peak"
-            
-        html_news_feed += f"""
-        <div class='timeline-item'>
-            <div class='timeline-dot'></div>
-            <span class='timeline-date'>{item['date']}</span>
+    for date_disp, items in grouped_news.items():
+        html_news_feed += f"<div class='timeline-item'>"
+        html_news_feed += f"<div class='timeline-dot'></div>"
+        html_news_feed += f"<span class='timeline-date'>{date_disp}</span>"
+        html_news_feed += "<div class='timeline-events'>"
+        
+        for item in items:
+            badge_class = "badge-global"
+            badge_text = "Global Stat"
+            if item['type'] == "milestone":
+                badge_class = "badge-milestone"
+                badge_text = "Milestone"
+            elif item['type'] == "peak":
+                badge_class = "badge-peak"
+                badge_text = "New Peak"
+            elif item['type'] == "listeners":
+                badge_class = "badge-listeners"
+                badge_text = "Audience"
+            elif item['type'] == "overtake":
+                badge_class = "badge-overtake"
+                badge_text = "Overtake"
+                
+            html_news_feed += f"""
             <div class='timeline-card'>
-                <img src='{item['cover']}' class='timeline-img'>
-                <div>
+                <div class='timeline-icon {badge_class}'>{item['icon']}</div>
+                <div class='timeline-content'>
                     <div class='timeline-badge {badge_class}'>{badge_text}</div>
-                    <div class='timeline-content'>{item['text']}</div>
+                    <div class='timeline-text'>{item['text']}</div>
                 </div>
             </div>
-        </div>
-        """
+            """
+        html_news_feed += "</div></div>"
 html_news_feed += "</div>"
 
 
@@ -1215,26 +1252,34 @@ html_content = f"""
         .plaque-song {{ color: white; font-weight: bold; font-size: 1.1em; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
         .plaque-streams {{ color: #888; font-family: 'Courier New', Courier, monospace; font-size: 0.95em; }}
 
-        /* 💡 DESIGN : NEWS FEED (TIMELINE) */
-        .timeline-container {{ position: relative; max-width: 650px; margin: 0 auto; padding-left: 30px; font-family: 'Segoe UI', sans-serif; }}
+        /* 💡 DESIGN : NEWS FEED (TIMELINE GROUPÉE) */
+        .timeline-container {{ position: relative; max-width: 700px; margin: 0 auto; padding-left: 30px; font-family: 'Segoe UI', sans-serif; }}
         .timeline-container::before {{ content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #e2e8e5; border-radius: 2px; }}
         
-        .timeline-item {{ position: relative; margin-bottom: 25px; }}
-        .timeline-dot {{ position: absolute; left: -39px; top: 8px; width: 14px; height: 14px; border-radius: 50%; background: #257059; border: 4px solid #f4f7f6; box-shadow: 0 0 0 1px #b0c4b1; transition: transform 0.2s; }}
+        .timeline-item {{ position: relative; margin-bottom: 30px; }}
+        .timeline-dot {{ position: absolute; left: -39px; top: 5px; width: 14px; height: 14px; border-radius: 50%; background: #257059; border: 4px solid #f4f7f6; box-shadow: 0 0 0 1px #b0c4b1; transition: transform 0.2s; }}
         .timeline-item:hover .timeline-dot {{ transform: scale(1.3); background: #d4af37; }}
         
-        .timeline-date {{ font-size: 0.85em; font-weight: 900; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; display: block; }}
+        .timeline-date {{ font-size: 0.9em; font-weight: 900; color: #888; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1.5px; display: block; }}
         
-        .timeline-card {{ background: white; border-radius: 12px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eaeaea; transition: transform 0.2s, box-shadow 0.2s; cursor: default; }}
+        .timeline-events {{ display: flex; flex-direction: column; gap: 12px; }}
+        .timeline-card {{ background: white; border-radius: 12px; padding: 15px 20px; display: flex; gap: 15px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eaeaea; transition: transform 0.2s, box-shadow 0.2s; }}
         .timeline-card:hover {{ transform: translateX(5px); box-shadow: 0 6px 20px rgba(37,112,89,0.1); border-color: #b0c4b1; }}
         
-        .timeline-img {{ width: 65px; height: 65px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.1); flex-shrink: 0; background-color: #222; }}
-        .timeline-content {{ flex: 1; font-size: 1.1em; color: #222; line-height: 1.4; }}
+        /* 💡 NOUVEAU : Les icônes à la place des images */
+        .timeline-icon {{ width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.4em; flex-shrink: 0; }}
         
-        .timeline-badge {{ display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.65em; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }}
+        .timeline-content {{ flex: 1; font-size: 1.1em; color: #222; line-height: 1.4; }}
+        .timeline-text {{ margin-top: 5px; }}
+        
+        .timeline-badge {{ display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.65em; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }}
+        
+        /* Les couleurs des badges et des icônes ! */
         .badge-milestone {{ background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }}
         .badge-peak {{ background: #e8f4f0; color: #257059; border: 1px solid #b0c4b1; }}
         .badge-global {{ background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }}
+        .badge-listeners {{ background: #e3f2fd; color: #1565c0; border: 1px solid #b6d4fe; }}
+        .badge-overtake {{ background: #fde8e8; color: #c62828; border: 1px solid #f5c6cb; }}
     </style>
 </head>
 <body>
