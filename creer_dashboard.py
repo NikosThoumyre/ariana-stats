@@ -945,6 +945,134 @@ html_listeners_grid = f"""
 </div>
 """
 
+# --- 💡 NOUVEAU : LOGIQUE DU NEWS FEED (TIMELINE) ---
+news_items = []
+
+# Image par défaut pour Ariana
+default_img = "https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952"
+
+# 0. SÉCURITÉ PYLANCE : On recrée le dictionnaire des pochettes ici pour que VS Code ne panique pas !
+album_covers_news = {
+    "Yours Truly": "https://m.media-amazon.com/images/I/61nIR7pU23L.jpg",
+    "Christmas Kisses": "https://m.media-amazon.com/images/I/71D0YnO2L1L.jpg",
+    "My Everything": "https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg",
+    "Christmas & Chill": "https://m.media-amazon.com/images/I/81xU-yq4KcL.jpg",
+    "Dangerous Woman": "https://m.media-amazon.com/images/I/71rtbFVgVuL.jpg",
+    "Sweetener": "https://m.media-amazon.com/images/I/81FH-xfuK5L.jpg",
+    "thank u, next": "https://i.scdn.co/image/ab67616d0000b27356ac7b86e090f307e218e9c8",
+    "Positions": "https://m.media-amazon.com/images/I/71Jx3DUwN1L.jpg",
+    "eternal sunshine": "https://cdn-images.dzcdn.net/images/cover/0924ef037bd95dc8589af0316f64524b/0x1900-000000-80-0-0.jpg",
+    "petal": "https://static.fnac-static.com/multimedia/Images/FR/NR/81/b7/35/20297601/1541-1/tsp20260513115042/petal.jpg"
+}
+track_to_cover_news = {}
+for album_name, tracks in ALBUM_TRACKS.items():
+    base_name = album_name.replace(" (Deluxe)", "").replace(" (Tenth Anniversary Edition)", "").replace(" deluxe: brighter days ahead", "")
+    cover = album_covers_news.get(base_name, default_img)
+    for t in tracks:
+        track_to_cover_news[resolve_track_id(t)] = cover
+
+# 1. Analyse des Listeners sur les 15 derniers jours
+for i in range(min(15, len(df_list_full_sorted)-1)):
+    list_act = df_list_full_sorted.iloc[i]
+    list_vei = df_list_full_sorted.iloc[i+1]
+    
+    l_curr = int(str(list_act['Listeners']).replace(',','').replace(' ',''))
+    l_prev = int(str(list_vei['Listeners']).replace(',','').replace(' ',''))
+    l_peak = int(str(list_act['PkListeners']).replace(',','').replace(' ',''))
+    
+    date_disp = datetime.strptime(list_act['Date'], "%Y-%m-%d").strftime("%b %d, %Y")
+    
+    if l_curr >= l_peak and l_curr > l_prev:
+        news_items.append({
+            "date": date_disp, "type": "peak", "cover": default_img,
+            "text": f"New all-time peak of <b>{format_en(l_curr)}</b> Monthly Listeners! 🌍"
+        })
+    elif (l_curr // 1_000_000) > (l_prev // 1_000_000):
+        news_items.append({
+            "date": date_disp, "type": "global", "cover": default_img,
+            "text": f"Surpassed <b>{l_curr // 1_000_000} Million</b> Monthly Listeners! 📈"
+        })
+
+# 2. Analyse des Streams (Global & Chansons) sur les 15 derniers jours !
+for i in range(min(15, len(dates)-1)):
+    d_actuel = dates[i]
+    d_veille = dates[i+1]
+    df_actuel = df[df['Date'] == d_actuel]
+    df_veille = df[df['Date'] == d_veille]
+    date_disp = datetime.strptime(d_actuel, "%Y-%m-%d").strftime("%b %d, %Y")
+    
+    # Cap Global
+    tot_actuel = df_actuel['Streams_num'].sum()
+    tot_veille = df_veille['Streams_num'].sum()
+    if (tot_actuel // 1_000_000_000) > (tot_veille // 1_000_000_000):
+        val = int(tot_actuel // 1_000_000_000)
+        news_items.append({
+            "date": date_disp, "type": "global", "cover": default_img,
+            "text": f"The entire catalog surpassed <b>{val} BILLION</b> streams! 🌌"
+        })
+        
+    for uid in df_actuel['Unique_ID']:
+        s_act = df_actuel[df_actuel['Unique_ID'] == uid]['Streams_num'].values[0]
+        d_act = df_actuel[df_actuel['Unique_ID'] == uid]['Daily_num'].values[0]
+        titre = html.escape(df_actuel[df_actuel['Unique_ID'] == uid]['Song Title'].values[0])
+        
+        # 💡 UTILISATION DU DICTIONNAIRE LOCAL ICI
+        cover_url = track_to_cover_news.get(uid, default_img)
+        
+        # Franchissement d'un cap de 100M
+        s_vei_df = df_veille[df_veille['Unique_ID'] == uid]
+        if not s_vei_df.empty:
+            s_vei = s_vei_df['Streams_num'].values[0]
+            if (s_act // 100_000_000) > (s_vei // 100_000_000):
+                val = int(s_act // 100_000_000) * 100
+                m_text = f"{val/1000:.1f} Billion" if val >= 1000 else f"{val} Million"
+                news_items.append({
+                    "date": date_disp, "type": "milestone", "cover": cover_url,
+                    "text": f"<b>{titre}</b> surpassed <b>{m_text}</b> streams! 💿"
+                })
+        
+        # Nouveau record Quotidien (Si > 50k streams pour éviter le spam)
+        if d_act > 50_000:
+            hist_max = df[(df['Unique_ID'] == uid) & (df['Date'] < d_actuel)]['Daily_num'].max()
+            if pd.notna(hist_max) and d_act > hist_max:
+                news_items.append({
+                    "date": date_disp, "type": "peak", "cover": cover_url,
+                    "text": f"<b>{titre}</b> reached a new tracking peak of <b>{format_en(d_act)}</b> daily streams! 🚀"
+                })
+
+# 3. On trie les news chronologiquement (de la plus récente à la plus ancienne)
+news_items = sorted(news_items, key=lambda x: datetime.strptime(x['date'], "%b %d, %Y"), reverse=True)
+
+# 4. Génération du code HTML
+html_news_feed = "<div class='timeline-container'>"
+if not news_items:
+    html_news_feed += "<p style='text-align:center; color:#666; font-style:italic;'>No recent milestones or peaks in the past 15 days. Keep streaming!</p>"
+else:
+    for item in news_items:
+        badge_class = "badge-global"
+        badge_text = "Global Stat"
+        if item['type'] == "milestone":
+            badge_class = "badge-milestone"
+            badge_text = "Milestone"
+        elif item['type'] == "peak":
+            badge_class = "badge-peak"
+            badge_text = "New Peak"
+            
+        html_news_feed += f"""
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>{item['date']}</span>
+            <div class='timeline-card'>
+                <img src='{item['cover']}' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge {badge_class}'>{badge_text}</div>
+                    <div class='timeline-content'>{item['text']}</div>
+                </div>
+            </div>
+        </div>
+        """
+html_news_feed += "</div>"
+
 
 # ==========================================
 # 6. CRÉATION DU FICHIER HTML
@@ -1086,6 +1214,27 @@ html_content = f"""
         @keyframes spin {{ 100% {{ transform: rotate(360deg); }} }}
         .plaque-song {{ color: white; font-weight: bold; font-size: 1.1em; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
         .plaque-streams {{ color: #888; font-family: 'Courier New', Courier, monospace; font-size: 0.95em; }}
+
+        /* 💡 DESIGN : NEWS FEED (TIMELINE) */
+        .timeline-container {{ position: relative; max-width: 650px; margin: 0 auto; padding-left: 30px; font-family: 'Segoe UI', sans-serif; }}
+        .timeline-container::before {{ content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #e2e8e5; border-radius: 2px; }}
+        
+        .timeline-item {{ position: relative; margin-bottom: 25px; }}
+        .timeline-dot {{ position: absolute; left: -39px; top: 8px; width: 14px; height: 14px; border-radius: 50%; background: #257059; border: 4px solid #f4f7f6; box-shadow: 0 0 0 1px #b0c4b1; transition: transform 0.2s; }}
+        .timeline-item:hover .timeline-dot {{ transform: scale(1.3); background: #d4af37; }}
+        
+        .timeline-date {{ font-size: 0.85em; font-weight: 900; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; display: block; }}
+        
+        .timeline-card {{ background: white; border-radius: 12px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eaeaea; transition: transform 0.2s, box-shadow 0.2s; cursor: default; }}
+        .timeline-card:hover {{ transform: translateX(5px); box-shadow: 0 6px 20px rgba(37,112,89,0.1); border-color: #b0c4b1; }}
+        
+        .timeline-img {{ width: 65px; height: 65px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.1); flex-shrink: 0; background-color: #222; }}
+        .timeline-content {{ flex: 1; font-size: 1.1em; color: #222; line-height: 1.4; }}
+        
+        .timeline-badge {{ display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.65em; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }}
+        .badge-milestone {{ background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }}
+        .badge-peak {{ background: #e8f4f0; color: #257059; border: 1px solid #b0c4b1; }}
+        .badge-global {{ background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }}
     </style>
 </head>
 <body>
@@ -1113,6 +1262,7 @@ html_content = f"""
                     <button class="subtab-artist active" onclick="openSubTab(event, 'Artist-Overview', 'subtab-artist')" id="defaultArtist">Overview</button>
                     <button class="subtab-artist" onclick="openSubTab(event, 'Artist-Charts', 'subtab-artist')">📉 Charts</button>
                     <button class="subtab-artist" onclick="openSubTab(event, 'Artist-Periodic', 'subtab-artist')">📅 Monthly/Yearly Streams</button>
+                    <button class="subtab-artist" onclick="openSubTab(event, 'Artist-News', 'subtab-artist')">🔔 Latest News</button>
                 </div>
                 
                 <div id="Artist-Overview" class="subtab-artist-content" style="display:block;">
@@ -1143,6 +1293,11 @@ html_content = f"""
                     <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
                     <h2 style="color: #257059; text-align: center; margin-bottom: 30px;">🔥 Top Gaining Songs</h2>
                     {html_top10_container}
+                </div>
+
+                <div id="Artist-News" class="subtab-artist-content" style="display:none;">
+                    <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🔔 Recent Achievements</h2>
+                    {html_news_feed}
                 </div>
             </div>
 

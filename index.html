@@ -135,6 +135,27 @@
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .plaque-song { color: white; font-weight: bold; font-size: 1.1em; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .plaque-streams { color: #888; font-family: 'Courier New', Courier, monospace; font-size: 0.95em; }
+
+        /* 💡 DESIGN : NEWS FEED (TIMELINE) */
+        .timeline-container { position: relative; max-width: 650px; margin: 0 auto; padding-left: 30px; font-family: 'Segoe UI', sans-serif; }
+        .timeline-container::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #e2e8e5; border-radius: 2px; }
+        
+        .timeline-item { position: relative; margin-bottom: 25px; }
+        .timeline-dot { position: absolute; left: -39px; top: 8px; width: 14px; height: 14px; border-radius: 50%; background: #257059; border: 4px solid #f4f7f6; box-shadow: 0 0 0 1px #b0c4b1; transition: transform 0.2s; }
+        .timeline-item:hover .timeline-dot { transform: scale(1.3); background: #d4af37; }
+        
+        .timeline-date { font-size: 0.85em; font-weight: 900; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; display: block; }
+        
+        .timeline-card { background: white; border-radius: 12px; padding: 15px; display: flex; gap: 15px; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eaeaea; transition: transform 0.2s, box-shadow 0.2s; cursor: default; }
+        .timeline-card:hover { transform: translateX(5px); box-shadow: 0 6px 20px rgba(37,112,89,0.1); border-color: #b0c4b1; }
+        
+        .timeline-img { width: 65px; height: 65px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.1); flex-shrink: 0; background-color: #222; }
+        .timeline-content { flex: 1; font-size: 1.1em; color: #222; line-height: 1.4; }
+        
+        .timeline-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.65em; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .badge-milestone { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+        .badge-peak { background: #e8f4f0; color: #257059; border: 1px solid #b0c4b1; }
+        .badge-global { background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }
     </style>
 </head>
 <body>
@@ -162,6 +183,7 @@
                     <button class="subtab-artist active" onclick="openSubTab(event, 'Artist-Overview', 'subtab-artist')" id="defaultArtist">Overview</button>
                     <button class="subtab-artist" onclick="openSubTab(event, 'Artist-Charts', 'subtab-artist')">📉 Charts</button>
                     <button class="subtab-artist" onclick="openSubTab(event, 'Artist-Periodic', 'subtab-artist')">📅 Monthly/Yearly Streams</button>
+                    <button class="subtab-artist" onclick="openSubTab(event, 'Artist-News', 'subtab-artist')">🔔 Latest News</button>
                 </div>
                 
                 <div id="Artist-Overview" class="subtab-artist-content" style="display:block;">
@@ -233,6 +255,203 @@
                     <hr style="border: 1px solid #eaeaea; margin: 40px 0;">
                     <h2 style="color: #257059; text-align: center; margin-bottom: 30px;">🔥 Top Gaining Songs</h2>
                     <div class='top10-container'><div class='top10-card'><h3 class='top10-title'>📅 Top 10 - July 2026</h3><div class='top10-item'><span class='top10-rank'>1.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('hate that i made you love me___0')" class="song-link" title="Voir les graphiques de hate that i made you love me">hate that i made you love me</a></span><span class='top10-streams'>+99,212,804</span></div><div class='top10-item'><span class='top10-rank'>2.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('we can\'t be friends (wait for your love)___0')" class="song-link" title="Voir les graphiques de we can&#x27;t be friends (wait for your love)">we can&#x27;t be friends (wait for your love)</a></span><span class='top10-streams'>+34,866,434</span></div><div class='top10-item'><span class='top10-rank'>3.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('Into You___0')" class="song-link" title="Voir les graphiques de Into You">Into You</a></span><span class='top10-streams'>+29,840,042</span></div><div class='top10-item'><span class='top10-rank'>4.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('Love Me Harder___0')" class="song-link" title="Voir les graphiques de Love Me Harder">Love Me Harder</a></span><span class='top10-streams'>+28,856,447</span></div><div class='top10-item'><span class='top10-rank'>5.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('One Last Time___0')" class="song-link" title="Voir les graphiques de One Last Time">One Last Time</a></span><span class='top10-streams'>+25,524,113</span></div><div class='top10-item'><span class='top10-rank'>6.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('* Save Your Tears (Remix) (with Ariana Grande) - Bonus Track___0')" class="song-link" title="Voir les graphiques de * Save Your Tears (Remix) (with Ariana Grande) - Bonus Track">* Save Your Tears (Remix) (with Ariana Grande) - Bonus Track</a></span><span class='top10-streams'>+24,962,468</span></div><div class='top10-item'><span class='top10-rank'>7.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('Side To Side___0')" class="song-link" title="Voir les graphiques de Side To Side">Side To Side</a></span><span class='top10-streams'>+21,981,124</span></div><div class='top10-item'><span class='top10-rank'>8.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('7 rings___0')" class="song-link" title="Voir les graphiques de 7 rings">7 rings</a></span><span class='top10-streams'>+21,719,589</span></div><div class='top10-item'><span class='top10-rank'>9.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('Dangerous Woman___0')" class="song-link" title="Voir les graphiques de Dangerous Woman">Dangerous Woman</a></span><span class='top10-streams'>+21,217,632</span></div><div class='top10-item'><span class='top10-rank'>10.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('thank u, next___0')" class="song-link" title="Voir les graphiques de thank u, next">thank u, next</a></span><span class='top10-streams'>+20,271,491</span></div></div><div class='top10-card'><h3 class='top10-title'>🏆 Top 10 - Year 2026</h3><div class='top10-item'><span class='top10-rank'>1.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('hate that i made you love me___0')" class="song-link" title="Voir les graphiques de hate that i made you love me">hate that i made you love me</a></span><span class='top10-streams'>+294,120,120</span></div><div class='top10-item'><span class='top10-rank'>2.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('we can\'t be friends (wait for your love)___0')" class="song-link" title="Voir les graphiques de we can&#x27;t be friends (wait for your love)">we can&#x27;t be friends (wait for your love)</a></span><span class='top10-streams'>+111,014,706</span></div><div class='top10-item'><span class='top10-rank'>3.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('Into You___0')" class="song-link" title="Voir les graphiques de Into You">Into You</a></span><span class='top10-streams'>+93,306,079</span></div><div class='top10-item'><span class='top10-rank'>4.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('Love Me Harder___0')" class="song-link" title="Voir les graphiques de Love Me Harder">Love Me Harder</a></span><span class='top10-streams'>+91,111,811</span></div><div class='top10-item'><span class='top10-rank'>5.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('* Save Your Tears (Remix) (with Ariana Grande) - Bonus Track___0')" class="song-link" title="Voir les graphiques de * Save Your Tears (Remix) (with Ariana Grande) - Bonus Track">* Save Your Tears (Remix) (with Ariana Grande) - Bonus Track</a></span><span class='top10-streams'>+79,906,888</span></div><div class='top10-item'><span class='top10-rank'>6.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('One Last Time___0')" class="song-link" title="Voir les graphiques de One Last Time">One Last Time</a></span><span class='top10-streams'>+78,986,940</span></div><div class='top10-item'><span class='top10-rank'>7.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('Side To Side___0')" class="song-link" title="Voir les graphiques de Side To Side">Side To Side</a></span><span class='top10-streams'>+67,555,759</span></div><div class='top10-item'><span class='top10-rank'>8.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('7 rings___0')" class="song-link" title="Voir les graphiques de 7 rings">7 rings</a></span><span class='top10-streams'>+66,919,492</span></div><div class='top10-item'><span class='top10-rank'>9.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('Dangerous Woman___0')" class="song-link" title="Voir les graphiques de Dangerous Woman">Dangerous Woman</a></span><span class='top10-streams'>+65,011,765</span></div><div class='top10-item'><span class='top10-rank'>10.</span><span class='top10-song'><a href="javascript:void(0)" onclick="afficherDetailsChanson('thank u, next___0')" class="song-link" title="Voir les graphiques de thank u, next">thank u, next</a></span><span class='top10-streams'>+61,372,226</span></div></div></div>
+                </div>
+
+                <div id="Artist-News" class="subtab-artist-content" style="display:none;">
+                    <h2 style="color: #257059; text-align: center; margin-top: 0; margin-bottom: 30px;">🔔 Recent Achievements</h2>
+                    <div class='timeline-container'>
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 24, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://m.media-amazon.com/images/I/71D0YnO2L1L.jpg' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>Santa Tell Me</b> reached a new tracking peak of <b>58,845</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 23, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://m.media-amazon.com/images/I/71D0YnO2L1L.jpg' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>Santa Tell Me</b> reached a new tracking peak of <b>56,782</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 22, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://m.media-amazon.com/images/I/71D0YnO2L1L.jpg' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>Santa Tell Me</b> reached a new tracking peak of <b>55,235</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 22, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://m.media-amazon.com/images/I/71Jx3DUwN1L.jpg' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-milestone'>Milestone</div>
+                    <div class='timeline-content'><b>34+35</b> surpassed <b>1.2 Billion</b> streams! 💿</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 21, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://m.media-amazon.com/images/I/71D0YnO2L1L.jpg' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>Santa Tell Me</b> reached a new tracking peak of <b>54,895</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 20, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>* Dance To This (feat. Ariana Grande)</b> reached a new tracking peak of <b>212,075</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 20, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>* L.a. Boyz</b> reached a new tracking peak of <b>192,660</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 20, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>* Give It Up</b> reached a new tracking peak of <b>53,396</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 17, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>Break Free</b> reached a new tracking peak of <b>928,055</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 14, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>What Is This Feeling?</b> reached a new tracking peak of <b>67,457</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 13, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://m.media-amazon.com/images/I/71D0YnO2L1L.jpg' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>Santa Tell Me</b> reached a new tracking peak of <b>53,301</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 13, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>What Is This Feeling?</b> reached a new tracking peak of <b>64,900</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 12, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://m.media-amazon.com/images/I/81FH-xfuK5L.jpg' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-milestone'>Milestone</div>
+                    <div class='timeline-content'><b>no tears left to cry</b> surpassed <b>1.6 Billion</b> streams! 💿</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 10, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://m.media-amazon.com/images/I/71D0YnO2L1L.jpg' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>Santa Tell Me</b> reached a new tracking peak of <b>52,941</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 10, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://i.scdn.co/image/ab6761610000e5ebcdce7620dc940db079bf4952' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>Don&#x27;t Call Me Angel (Charlie&#x27;s Angels) (with Miley Cyrus &amp; Lana Del Rey)</b> reached a new tracking peak of <b>95,393</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class='timeline-item'>
+            <div class='timeline-dot'></div>
+            <span class='timeline-date'>Jul 10, 2026</span>
+            <div class='timeline-card'>
+                <img src='https://imusic.b-cdn.net/images/item/original/527/0602537939527.jpg' class='timeline-img'>
+                <div>
+                    <div class='timeline-badge badge-peak'>New Peak</div>
+                    <div class='timeline-content'><b>Be My Baby</b> reached a new tracking peak of <b>99,844</b> daily streams! 🚀</div>
+                </div>
+            </div>
+        </div>
+        </div>
                 </div>
             </div>
 
