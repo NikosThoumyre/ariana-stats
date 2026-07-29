@@ -98,6 +98,23 @@ df_global['Streams '] = df_global['Streams_num'].apply(format_en)
 df_global['Daily '] = df_global['Daily_num'].apply(format_en)
 html_tableau_global = df_global[['Chanson', 'Streams ', 'Daily ']].fillna('-').to_html(index=False, classes="table-chansons sortable auto-index", escape=False)
 
+# --- 💡 NOUVEAU : CALCUL POUR LA PYRAMIDE DES STREAMS ---
+c_2b = len(df_jour[df_jour['Streams_num'] >= 2_000_000_000])
+c_1b = len(df_jour[(df_jour['Streams_num'] >= 1_000_000_000) & (df_jour['Streams_num'] < 2_000_000_000)])
+c_500m = len(df_jour[(df_jour['Streams_num'] >= 500_000_000) & (df_jour['Streams_num'] < 1_000_000_000)])
+c_100m = len(df_jour[(df_jour['Streams_num'] >= 100_000_000) & (df_jour['Streams_num'] < 500_000_000)])
+c_rest = len(df_jour[df_jour['Streams_num'] < 100_000_000])
+
+html_pyramide = f"""
+<div class="pyramid-wrapper">
+    <div class="pyr-tier t-2b"><span class="pyr-label">👑 +2 BILLION</span><span class="pyr-val">{c_2b} songs</span></div>
+    <div class="pyr-tier t-1b"><span class="pyr-label">💿 +1 BILLION</span><span class="pyr-val">{c_1b} songs</span></div>
+    <div class="pyr-tier t-500m"><span class="pyr-label">📀 +500 MILLION</span><span class="pyr-val">{c_500m} songs</span></div>
+    <div class="pyr-tier t-100m"><span class="pyr-label">🎵 +100 MILLION</span><span class="pyr-val">{c_100m} songs</span></div>
+    <div class="pyr-tier t-rest"><span class="pyr-label">💤 Under 100M</span><span class="pyr-val">{c_rest} songs</span></div>
+</div>
+"""
+
 if len(dates) >= 2:
     df_evo_visuel = df_affichage_evo.copy()
     df_evo_visuel['Chanson'] = df_evo_visuel.apply(lambda r: rendre_cliquable(r, 'Song Title'), axis=1)
@@ -1327,6 +1344,19 @@ html_content = f"""
         .badge-global {{ background: #e2e3e5; color: #383d41; border: 1px solid #d6d8db; }}
         .badge-listeners {{ background: #e3f2fd; color: #1565c0; border: 1px solid #b6d4fe; }}
         .badge-overtake {{ background: #fde8e8; color: #c62828; border: 1px solid #f5c6cb; }}
+
+        /* 💡 DESIGN : PYRAMIDE DES STREAMS (CATALOGUE) */
+        .pyramid-wrapper {{ display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 30px auto 40px auto; width: 100%; max-width: 800px; }}
+        .pyr-tier {{ display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-radius: 6px; color: white; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; }}
+        .pyr-tier:hover {{ transform: scale(1.02); }}
+        .pyr-label {{ font-size: 1.1em; letter-spacing: 1px; }}
+        .pyr-val {{ font-family: 'Courier New', monospace; font-size: 1.2em; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 15px; }}
+        
+        .t-2b {{ width: 35%; background: linear-gradient(135deg, #d4af37, #f1c40f); }}
+        .t-1b {{ width: 50%; background: linear-gradient(135deg, #7f8c8d, #bdc3c7); }}
+        .t-500m {{ width: 65%; background: linear-gradient(135deg, #257059, #359c7b); }}
+        .t-100m {{ width: 85%; background: linear-gradient(135deg, #2980b9, #3498db); }}
+        .t-rest {{ width: 100%; background: linear-gradient(135deg, #8e44ad, #9b59b6); }}
     </style>
 </head>
 <body>
@@ -1443,6 +1473,10 @@ html_content = f"""
                 </div>
                 
                 <div id="Songs-Overview" class="subtab-songs-content" style="display:block;">
+                    <h2 style="color: #257059; text-align: center; margin-top: 0;">📊 Catalog Distribution</h2>
+                    {html_pyramide}
+                    <hr style="border: 1px dashed #eaeaea; margin: 30px 0;">
+                    <h2 style="color: #257059; text-align: center; margin-bottom: 20px;">🎵 All Songs Overview</h2>
                     {html_tableau_global}
                 </div>
                 <div id="Songs-Evolution" class="subtab-songs-content" style="display:none;">
