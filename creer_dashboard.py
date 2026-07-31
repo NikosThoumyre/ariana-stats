@@ -977,13 +977,17 @@ for i in range(min(15, len(df_list_full_sorted)-1)):
             "text": f"Massive update! Ariana gained <b>+{format_en(gain)}</b> Monthly Listeners in a single day!"
         })
 
-# 💡 PRÉ-CALCUL DES ALBUMS POUR ALLER VITE
+# 💡 PRÉ-CALCULS POUR ALLER VITE (Albums et Dailys)
 album_keys_list = list(ALBUM_TRACKS.keys())
 album_history = {}
 for nom_album, tracks in ALBUM_TRACKS.items():
     uids = [resolve_track_id(t) for t in tracks]
     df_a = df[df['Unique_ID'].isin(uids)].groupby('Date').agg({'Streams_num':'sum', 'Daily_num':'sum'})
     album_history[nom_album] = df_a
+
+# On pré-calcule le tableau des streams quotidiens pour que le script aille 10x plus vite
+pivot_daily = df.pivot(index='Date', columns='Unique_ID', values='Daily_num').fillna(0)
+global_daily_series = df.groupby('Date')['Daily_num'].sum()
 
 # 2. Analyse des Streams (Global, Albums & Chansons)
 for i in range(min(15, len(dates)-1)):
@@ -994,7 +998,7 @@ for i in range(min(15, len(dates)-1)):
     date_disp = datetime.strptime(d_actuel, "%Y-%m-%d").strftime("%b %d, %Y")
     curr_date_obj = datetime.strptime(d_actuel, "%Y-%m-%d")
     
-    # Cap Global
+    # 🌍 CAP GLOBAL (Milliards totaux)
     tot_actuel = df_actuel['Streams_num'].sum()
     tot_veille = df_veille['Streams_num'].sum()
     if (tot_actuel // 1_000_000_000) > (tot_veille // 1_000_000_000):
@@ -1003,8 +1007,22 @@ for i in range(min(15, len(dates)-1)):
             "date": date_disp, "type": "global", "icon": "🌌",
             "text": f"The entire catalog surpassed <b>{val} BILLION</b> streams! ✨"
         })
+        
+    # 🌍 💡 NOUVEAU : PEAK GLOBAL (Meilleur score quotidien du catalogue)
+    g_act_daily = global_daily_series.loc[d_actuel]
+    g_past = global_daily_series[global_daily_series.index < d_actuel]
+    if not g_past.empty:
+        higher_past = g_past[g_past >= g_act_daily]
+        if higher_past.empty:
+            news_items.append({"date": date_disp, "type": "peak", "icon": "👑", "text": f"The entire catalog reached a new all-time tracking peak of <b>{format_en(g_act_daily)}</b> daily streams! 🌌"})
+        else:
+            last_higher_date = higher_past.index.max()
+            days_since = (curr_date_obj - datetime.strptime(last_higher_date, "%Y-%m-%d")).days
+            if days_since >= 25: # Seuil de 25 jours d'écart pour alerter
+                last_d = datetime.strptime(last_higher_date, '%Y-%m-%d').strftime('%b %d, %Y')
+                news_items.append({"date": date_disp, "type": "peak", "icon": "📈", "text": f"The entire catalog reached <b>{format_en(g_act_daily)}</b> daily streams, its highest since {last_d}! 🌌"})
 
-    # 💡 NOUVEAU : CAP DES ALBUMS
+    # 💽 ANALYSE DES ALBUMS (Caps et Peaks)
     for nom_album, df_a in album_history.items():
         if d_actuel in df_a.index and d_veille in df_a.index:
             s_act = df_a.loc[d_actuel, 'Streams_num']
@@ -1015,7 +1033,7 @@ for i in range(min(15, len(dates)-1)):
             nom_alb_escape = html.escape(nom_album)
             link_alb = f"<a href=\"javascript:void(0)\" onclick=\"afficherDetailsAlbum({idx_alb})\" class=\"song-link\">{nom_alb_escape}</a>"
             
-            # Franchissement d'un cap de 100M pour un Album
+            # Franchissement d'un cap de 100M (Album)
             if (s_act // 100_000_000) > (s_vei // 100_000_000):
                 val = int(s_act // 100_000_000) * 100
                 m_text = f"{val/1000:.1f} Billion" if val >= 1000 else f"{val} Million"
@@ -1024,25 +1042,27 @@ for i in range(min(15, len(dates)-1)):
                     "text": f"The album {link_alb} surpassed <b>{m_text}</b> streams!"
                 })
             
-            # Nouveau Record Quotidien pour un Album (Si > 500k pour éviter le spam)
+            # 💡 NOUVEAU : Peak Quotidien (Highest since...) pour les Albums
             if d_act > 500_000:
-                df_hist_past = df_a[df_a.index < d_actuel]
-                if not df_hist_past.empty:
-                    hist_max = df_hist_past['Daily_num'].max()
-                    if d_act > hist_max:
-                        prev_peak_date_str = df_hist_past['Daily_num'].idxmax()
-                        prev_peak_date_obj = datetime.strptime(prev_peak_date_str, "%Y-%m-%d")
-                        if (curr_date_obj - prev_peak_date_obj).days > 30:
-                            peak_text = f"since {prev_peak_date_obj.strftime('%b %d, %Y')}"
-                        else:
-                            peak_text = "since May 9th 2026 (beginning of the data)"
-                            
+                a_past = df_a[df_a.index < d_actuel]['Daily_num']
+                if not a_past.empty:
+                    higher_past = a_past[a_past >= d_act]
+                    if higher_past.empty:
                         news_items.append({
                             "date": date_disp, "type": "album_peak", "icon": "🚀",
-                            "text": f"The album {link_alb} reached a new tracking peak of <b>{format_en(d_act)}</b> daily streams {peak_text}!"
+                            "text": f"The album {link_alb} reached a new tracking peak of <b>{format_en(d_act)}</b> daily streams!"
                         })
+                    else:
+                        last_higher_date = higher_past.index.max()
+                        days_since = (curr_date_obj - datetime.strptime(last_higher_date, "%Y-%m-%d")).days
+                        if days_since >= 25:
+                            last_d = datetime.strptime(last_higher_date, '%Y-%m-%d').strftime('%b %d, %Y')
+                            news_items.append({
+                                "date": date_disp, "type": "album_peak", "icon": "📈",
+                                "text": f"The album {link_alb} reached <b>{format_en(d_act)}</b> daily streams, its highest since {last_d}!"
+                            })
 
-    # Détection des dépassements (Overtakes)
+    # ⚔️ DÉTECTION DES DÉPASSEMENTS (Overtakes)
     dict_act = dict(zip(df_actuel['Unique_ID'], df_actuel['Streams_num']))
     dict_vei = dict(zip(df_veille['Unique_ID'], df_veille['Streams_num']))
     uids_to_check = df_actuel.sort_values('Streams_num', ascending=False).head(100)['Unique_ID'].tolist()
@@ -1063,20 +1083,21 @@ for i in range(min(15, len(dates)-1)):
                 link_b = f"<a href=\"javascript:void(0)\" onclick=\"afficherDetailsChanson('{uid_b_safe}')\" class=\"song-link\">{titre_b}</a>"
                 overtakes_today.append(f"{link_a} just overtook {link_b} in total streams!")
     
-    for ot in overtakes_today[:2]:
+    # 💡 On autorise jusqu'à 5 dépassements majeurs (au lieu de 2)
+    for ot in overtakes_today[:5]:
         news_items.append({"date": date_disp, "type": "overtake", "icon": "⚔️", "text": ot})
 
-    # Caps et Records Quotidiens (Chansons)
+    # 🎵 ANALYSE DES CHANSONS (Caps et Highest Since...)
     for uid in df_actuel['Unique_ID']:
-        s_act = df_actuel[df_actuel['Unique_ID'] == uid]['Streams_num'].values[0]
-        d_act = df_actuel[df_actuel['Unique_ID'] == uid]['Daily_num'].values[0]
+        s_act = dict_act.get(uid, 0)
+        d_act = pivot_daily.loc[d_actuel, uid] if uid in pivot_daily.columns else 0
         titre = html.escape(df_actuel[df_actuel['Unique_ID'] == uid]['Song Title'].values[0])
         uid_safe = uid.replace("'", "\\'").replace('"', '&quot;')
         link_titre = f"<a href=\"javascript:void(0)\" onclick=\"afficherDetailsChanson('{uid_safe}')\" class=\"song-link\">{titre}</a>"
         
-        s_vei_df = df_veille[df_veille['Unique_ID'] == uid]
-        if not s_vei_df.empty:
-            s_vei = s_vei_df['Streams_num'].values[0]
+        # Franchissement d'un cap de 100M
+        s_vei = dict_vei.get(uid, 0)
+        if s_vei > 0:
             if (s_act // 100_000_000) > (s_vei // 100_000_000):
                 val = int(s_act // 100_000_000) * 100
                 m_text = f"{val/1000:.1f} Billion" if val >= 1000 else f"{val} Million"
@@ -1085,23 +1106,25 @@ for i in range(min(15, len(dates)-1)):
                     "text": f"{link_titre} surpassed <b>{m_text}</b> streams!"
                 })
         
-        if d_act > 50_000:
-            hist_max_df = df[(df['Unique_ID'] == uid) & (df['Date'] < d_actuel)]
-            if not hist_max_df.empty:
-                hist_max = hist_max_df['Daily_num'].max()
-                if pd.notna(hist_max) and d_act > hist_max:
-                    prev_peak_row = hist_max_df[hist_max_df['Daily_num'] == hist_max].iloc[0]
-                    prev_peak_date_obj = datetime.strptime(prev_peak_row['Date'], "%Y-%m-%d")
-                    
-                    if (curr_date_obj - prev_peak_date_obj).days > 30:
-                        peak_text = f"since {prev_peak_date_obj.strftime('%b %d, %Y')}"
-                    else:
-                        peak_text = "since May 9th 2026 (beginning of the data)"
-                        
+        # 💡 NOUVEAU : Peak Local Quotidien (Highest since...) pour les Chansons
+        if d_act > 100_000:
+            s_past = pivot_daily[uid].loc[pivot_daily.index < d_actuel]
+            if not s_past.empty:
+                higher_past = s_past[s_past >= d_act]
+                if higher_past.empty:
                     news_items.append({
                         "date": date_disp, "type": "peak", "icon": "🚀",
-                        "text": f"{link_titre} reached a new tracking peak of <b>{format_en(d_act)}</b> daily streams {peak_text}!"
+                        "text": f"{link_titre} reached a new tracking peak of <b>{format_en(d_act)}</b> daily streams!"
                     })
+                else:
+                    last_higher_date = higher_past.index.max()
+                    days_since = (curr_date_obj - datetime.strptime(last_higher_date, "%Y-%m-%d")).days
+                    if days_since >= 25: # Doit être le meilleur score depuis presque un mois
+                        last_d = datetime.strptime(last_higher_date, '%Y-%m-%d').strftime('%b %d, %Y')
+                        news_items.append({
+                            "date": date_disp, "type": "peak", "icon": "📈",
+                            "text": f"{link_titre} reached <b>{format_en(d_act)}</b> daily streams, its highest since {last_d}!"
+                        })
 
 # 3. Tri chronologique et Regroupement par Date
 news_items = sorted(news_items, key=lambda x: datetime.strptime(x['date'], "%b %d, %Y"), reverse=True)
