@@ -1014,14 +1014,16 @@ for i in range(min(15, len(dates)-1)):
     if not g_past.empty:
         higher_past = g_past[g_past >= g_act_daily]
         if higher_past.empty:
-            news_items.append({"date": date_disp, "type": "peak", "icon": "👑", "text": f"The entire catalog reached a new all-time tracking peak of <b>{format_en(g_act_daily)}</b> daily streams! 🌌"})
+            # 💡 CORRECTION : type est maintenant "global_peak"
+            news_items.append({"date": date_disp, "type": "global_peak", "icon": "👑", "text": f"The entire catalog reached a new all-time tracking peak of <b>{format_en(g_act_daily)}</b> daily streams! 🌌"})
         else:
             last_higher_date = higher_past.index.max()
             days_since = (curr_date_obj - datetime.strptime(last_higher_date, "%Y-%m-%d")).days
-            if days_since >= 25: # Seuil de 25 jours d'écart pour alerter
+            if days_since >= 25: 
                 last_d = datetime.strptime(last_higher_date, '%Y-%m-%d').strftime('%b %d, %Y')
-                news_items.append({"date": date_disp, "type": "peak", "icon": "📈", "text": f"The entire catalog reached <b>{format_en(g_act_daily)}</b> daily streams, its highest since {last_d}! 🌌"})
-
+                # 💡 CORRECTION : type est maintenant "global_peak"
+                news_items.append({"date": date_disp, "type": "global_peak", "icon": "📈", "text": f"The entire catalog reached <b>{format_en(g_act_daily)}</b> daily streams, its highest since {last_d}! 🌌"})
+                
     # 💽 ANALYSE DES ALBUMS (Caps et Peaks)
     for nom_album, df_a in album_history.items():
         if d_actuel in df_a.index and d_veille in df_a.index:
@@ -1161,6 +1163,9 @@ else:
             elif item['type'] == "album_peak":
                 badge_class = "badge-peak"
                 badge_text = "Album Peak"
+            elif item['type'] == "global_peak":
+                badge_class = "badge-global"
+                badge_text = "Global Peak"
             elif item['type'] == "listeners":
                 badge_class = "badge-listeners"
                 badge_text = "Audience"
