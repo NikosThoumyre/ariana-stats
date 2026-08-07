@@ -390,7 +390,7 @@ for display_name, config in ALBUM_VISUALS.items():
 
 # On dessine les barres
 # On dessine les barres (Avec calcul mathématique strict en pixels !)
-max_bar_height = 400 # La barre la plus haute fera 300 pixels exacts
+max_bar_height = 450 # La barre la plus haute fera 300 pixels exacts
 
 for d in visual_data:
     # Calcul en pixels stricts pour bloquer l'écrasement CSS
