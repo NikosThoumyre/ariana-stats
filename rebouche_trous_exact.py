@@ -4,9 +4,16 @@ import os
 
 print("🔍 Recherche des trous d'un seul jour et reconstitution exacte...")
 
+# 💡 LE BOUCLIER ANTI-VIDE :
+def safe_float(val):
+    if pd.isna(val) or str(val).strip() in ['-', '']:
+        return 0.0
+    return float(str(val).replace(',', '').replace(' ', '').replace('+', ''))
+
 def safe_int(val):
-    if pd.isna(val): return 0
-    return int(str(val).replace(',', '').replace(' ', '').replace('+', ''))
+    if pd.isna(val) or str(val).strip() in ['-', '']:
+        return 0
+    return int(float(str(val).replace(',', '').replace(' ', '').replace('+', '')))
 
 # ==========================================
 # 1. HISTORIQUE ARIANA (Chansons)
@@ -20,7 +27,7 @@ for i in range(len(dates) - 1):
     d1 = dates[i]
     d2 = dates[i+1]
     
-    # Si la différence entre deux dates est EXACTEMENT de 2 jours (ex: 15 août et 17 août)
+    # Si la différence entre deux dates est EXACTEMENT de 2 jours (ex: 16 sept et 18 sept)
     if (d2 - d1).days == 2:
         d_manquant = d1 + timedelta(days=1)
         print(f"🛠️ Trou détecté le {d_manquant.strftime('%Y-%m-%d')} (Chansons). Application de ta formule...")
@@ -36,9 +43,10 @@ for i in range(len(dates) - 1):
         for uid in chansons_communes:
             chanson_nom = df1.loc[uid, 'Song Title']
             
-            s1 = float(df1.loc[uid, 'Streams'])
-            s2 = float(df2.loc[uid, 'Streams'])
-            d2_daily = float(df2.loc[uid, 'Daily'])
+            # 💡 CORRECTION ICI : On utilise notre bouclier safe_float !
+            s1 = safe_float(df1.loc[uid, 'Streams'])
+            s2 = safe_float(df2.loc[uid, 'Streams'])
+            d2_daily = safe_float(df2.loc[uid, 'Daily'])
             
             # TA FORMULE EXACTE :
             s_manquant = s2 - d2_daily
@@ -163,4 +171,4 @@ if os.path.exists("historique_ariana_listeners.csv"):
     else:
         df_list = df_list.drop(columns=['Date_obj'], errors='ignore')
 
-print("\n✅ Opération terminée ! Tous les trous de 1 jour ont été rebouchés avec tes calculs exacts !")
+print("\n✅ Opération terminée ! Le 17 Septembre a été rebouché avec tes calculs exacts !")
