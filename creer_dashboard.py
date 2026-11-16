@@ -973,6 +973,20 @@ for album_name, tracks in ALBUM_TRACKS.items():
 
 # 1. Analyse des Listeners sur les 15 derniers jours
 df_list_news = df_list_full_sorted.sort_values('Date', ascending=False)
+
+def safe_rank(val):
+    try:
+        return int(str(val).replace('#', '').replace(',', '').strip())
+    except:
+        return 999999
+
+# 💡 NOUVEAU : On charge le classement du jour pour trouver les victimes d'Ariana !
+df_class_actuel = pd.DataFrame()
+if os.path.exists("classement_listeners_jour.csv"):
+    df_class_actuel = pd.read_csv("classement_listeners_jour.csv")
+    if '#' in df_class_actuel.columns:
+        df_class_actuel['#'] = pd.to_numeric(df_class_actuel['#'], errors='coerce')
+
 for i in range(min(15, len(df_list_news)-1)):
     list_act = df_list_news.iloc[i]
     list_vei = df_list_news.iloc[i+1]
@@ -980,6 +994,9 @@ for i in range(min(15, len(df_list_news)-1)):
     l_curr = int(str(list_act['Listeners']).replace(',','').replace(' ',''))
     l_prev = int(str(list_vei['Listeners']).replace(',','').replace(' ',''))
     l_peak = int(str(list_act['PkListeners']).replace(',','').replace(' ',''))
+    
+    r_curr = safe_rank(list_act.get('#', ''))
+    r_prev = safe_rank(list_vei.get('#', ''))
     
     date_disp = datetime.strptime(list_act['Date'], "%Y-%m-%d").strftime("%b %d, %Y")
     
@@ -1000,6 +1017,24 @@ for i in range(min(15, len(df_list_news)-1)):
         news_items.append({
             "date": date_disp, "type": "listeners", "icon": "👥",
             "text": f"Massive update! Ariana gained <b>+{format_en(gain)}</b> Monthly Listeners in a single day!"
+        })
+
+    # 💡 NOUVEAU : Notification avec le nom de l'artiste dépassé !
+    if r_curr < r_prev and r_curr > 0 and r_prev != 999999:
+        gained_spots = r_prev - r_curr
+        spot_text = "spot" if gained_spots == 1 else "spots"
+        
+        # Le robot cherche l'artiste qui se trouve juste derrière elle maintenant
+        surpassed_text = ""
+        if not df_class_actuel.empty:
+            artiste_battu = df_class_actuel[df_class_actuel['#'] == (r_curr + 1)]
+            if not artiste_battu.empty:
+                nom_artiste = artiste_battu.iloc[0]['Artist']
+                surpassed_text = f", surpassing <b>{html.escape(nom_artiste)}</b>"
+                
+        news_items.append({
+            "date": date_disp, "type": "rank_up", "icon": "⭐",
+            "text": f"Ariana moved up <b>{gained_spots} {spot_text}</b> to become the <b>#{r_curr}</b> most listened artist in the world{surpassed_text}! 🎉"
         })
 
 # 💡 LES PRÉ-CALCULS QUI AVAIENT DISPARU SONT DE RETOUR ICI :
@@ -1195,6 +1230,9 @@ else:
             elif item['type'] == "overtake":
                 badge_class = "badge-overtake"
                 badge_text = "Overtake"
+            elif item['type'] == "rank_up":
+                badge_class = "badge-listeners"
+                badge_text = "Rank Up"
                 
             html_news_feed += f"""
             <div class='timeline-card'>
