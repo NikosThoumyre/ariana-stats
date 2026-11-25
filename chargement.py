@@ -44,6 +44,15 @@ df_filtre_chansons = df_chansons[['Song Title', 'Streams', 'Daily']].copy()
 # 🧹 NETTOYAGE IMMÉDIAT
 df_filtre_chansons['Song Title'] = df_filtre_chansons['Song Title'].str.replace("’", "'", regex=False).str.replace("–", "-", regex=False).str.replace('\xa0', ' ', regex=False).str.strip()
 
+# Bouclier anti-changements de Kworb pour Yours Truly et Rule The World :
+df_filtre_chansons['Song Title'] = df_filtre_chansons['Song Title'].replace({
+    "Right There (feat. Big Sean)": "Right There", 
+    "The Way (feat. Mac Miller)": "The Way", 
+    "Almost Is Never Enough (with Nathan Sykes)": "Almost Is Never Enough", 
+    "* Popular Song (MIKA & Ariana Grande)": "* Popular Song",
+    "* Rule The World (feat. Ariana Grande)": "* Rule The World"
+})
+
 chanson_repere = df_filtre_chansons.iloc[0]['Song Title']
 streams_actuels = str(df_filtre_chansons.iloc[0]['Streams'])
 
